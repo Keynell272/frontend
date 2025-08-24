@@ -1,39 +1,49 @@
 package proyecto.view;
 
+import proyecto.model.Usuario;
+import proyecto.persistencia.XmlManager;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+import java.util.List;
 
 public class VentanaCambiarClave extends JFrame {
     private JPasswordField txtActual, txtNueva, txtConfirmar;
+    private Usuario usuario;
+    private List<Usuario> listaUsuarios;
+    private JFrame ventanaLogin; // referencia al login
 
-    // Método para escalar íconos
+    public VentanaCambiarClave(Usuario usuario, List<Usuario> listaUsuarios, JFrame ventanaLogin) {
+        this.usuario = usuario;
+        this.listaUsuarios = listaUsuarios;
+        this.ventanaLogin = ventanaLogin;
+        init();
+    }
+
     private ImageIcon escalarIcono(URL url, int ancho, int alto) {
-        if (url == null) {
-            System.err.println("❌ Imagen no encontrada (URL es null)");
-            return null;
-        }
+        if (url == null) return null;
         ImageIcon iconoOriginal = new ImageIcon(url);
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
 
-    public VentanaCambiarClave() {
+    private void init() {
         setTitle("Cambiar Clave");
-
-        // Cargar icono de la ventana
-        URL iconoVentana = getClass().getResource("/imagenes/clave de seguridad logo.png");
-        if (iconoVentana != null) {
-            setIconImage(new ImageIcon(iconoVentana).getImage());
-        } else {
-            System.err.println("❌ No se encontró el ícono de la ventana.");
-        }
-
         setSize(350, 200);
         setLocationRelativeTo(null);
         setLayout(new GridLayout(4, 2, 5, 5));
         setResizable(false);
-        
+
+        URL iconoVentana = getClass().getResource("/imagenes/clave de seguridad logo.png");
+        if (iconoVentana != null) { 
+            setIconImage(new ImageIcon(iconoVentana).getImage()); 
+        } else { 
+            System.err.println("❌ No se encontró el ícono de la ventana."); 
+        }
+
+        // Ocultar login mientras está abierta esta ventana
+        if (ventanaLogin != null) ventanaLogin.setVisible(false);
 
         add(new JLabel("Clave Actual:"));
         txtActual = new JPasswordField();
@@ -47,42 +57,52 @@ public class VentanaCambiarClave extends JFrame {
         txtConfirmar = new JPasswordField();
         add(txtConfirmar);
 
-        // Cargar imágenes de botones
+        // Botones con íconos
         URL iconoOk = getClass().getResource("/imagenes/Check logo.png");
         URL iconoCancel = getClass().getResource("/imagenes/X logo.png");
 
-        JButton btnOk, btnCancel;
+        JButton btnOk = (iconoOk != null) ? new JButton(escalarIcono(iconoOk, 32, 32)) : new JButton("Aceptar");
+        JButton btnCancel = (iconoCancel != null) ? new JButton(escalarIcono(iconoCancel, 32, 32)) : new JButton("Cancelar");
 
-        if (iconoOk != null && iconoCancel != null) {
-            btnOk = new JButton(escalarIcono(iconoOk, 32, 32));
-            btnCancel = new JButton(escalarIcono(iconoCancel, 32, 32));
-
-            // Opcional: Estilo plano (sin bordes ni fondo)
-            btnOk.setBorderPainted(false);
-            btnCancel.setBorderPainted(false);
-            btnOk.setContentAreaFilled(false);
-            btnCancel.setContentAreaFilled(false);
-        } else {
-            System.err.println("❌ No se encontraron uno o más íconos de botones. Usando botones de texto.");
-            btnOk = new JButton("Aceptar");
-            btnCancel = new JButton("Cancelar");
-        }
+        btnOk.setBorderPainted(false);
+        btnOk.setContentAreaFilled(false);
+        btnCancel.setBorderPainted(false);
+        btnCancel.setContentAreaFilled(false);
 
         add(btnOk);
         add(btnCancel);
 
-        // Acción del botón OK
-        btnOk.addActionListener(e -> {
-            if (new String(txtNueva.getPassword())
-                    .equals(new String(txtConfirmar.getPassword()))) {
-                JOptionPane.showMessageDialog(this, "Clave cambiada correctamente (demo)");
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(this, "Las claves nuevas no coinciden");
-            }
+        btnOk.addActionListener(e -> cambiarClave());
+        btnCancel.addActionListener(e -> {
+            if (ventanaLogin != null) ventanaLogin.setVisible(true); // volver a mostrar login
+            dispose();
         });
+    }
 
-        // Acción del botón Cancelar
-        btnCancel.addActionListener(e -> dispose());
+    private void cambiarClave() {
+        String actual = new String(txtActual.getPassword());
+        String nueva = new String(txtNueva.getPassword());
+        String confirmar = new String(txtConfirmar.getPassword());
+
+        if (!usuario.getClave().equals(actual)) {
+            JOptionPane.showMessageDialog(this, "❌ La clave actual no es correcta");
+            return;
+        }
+        if (!nueva.equals(confirmar)) {
+            JOptionPane.showMessageDialog(this, "❌ Las claves nuevas no coinciden");
+            return;
+        }
+        if (nueva.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "❌ La nueva clave no puede estar vacía");
+            return;
+        }
+
+        usuario.setClave(nueva);
+        XmlManager.guardarUsuarios(listaUsuarios, "usuarios.xml");
+
+        JOptionPane.showMessageDialog(this, "✅ Clave cambiada correctamente");
+
+        if (ventanaLogin != null) ventanaLogin.setVisible(true); // volver al login
+        dispose();
     }
 }

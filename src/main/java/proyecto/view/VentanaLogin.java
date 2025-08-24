@@ -100,7 +100,6 @@ public class VentanaLogin extends JFrame {
         // Funcionalidad botones
         btnEntrar.addActionListener(this::loginAction);
         btnBorrar.addActionListener(e -> limpiarCampos());
-        btnCambiarClave.addActionListener(e -> new VentanaCambiarClave().setVisible(true));
 
         panelBotones.add(btnEntrar);
         panelBotones.add(btnBorrar);
@@ -110,6 +109,21 @@ public class VentanaLogin extends JFrame {
         panel.add(panelBotones, gbc);
 
         add(panel, BorderLayout.CENTER);
+
+        btnCambiarClave.addActionListener(e -> {
+            String id = txtId.getText().trim();
+            String clave = new String(txtClave.getPassword());
+            Usuario u = controlLogin.login(id, clave);
+
+            if (u != null) {
+                new VentanaCambiarClave(u, controlLogin.getUsuarios(), this).setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "Debe iniciar sesión para cambiar la clave");
+            }
+        });
+
+
+
     }
 
     private void loginAction(ActionEvent e) {
@@ -132,4 +146,6 @@ public class VentanaLogin extends JFrame {
         txtId.setText("");
         txtClave.setText("");
     }
+
+    
 }

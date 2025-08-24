@@ -17,5 +17,9 @@ public class ControlLogin {
         }
         return null; // login fallido
     }
+
+    public List<Usuario> getUsuarios() {
+        return usuarios;
+    }
 }
 

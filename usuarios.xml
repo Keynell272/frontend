@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<usuarios>
+    <usuario clave="1" id="ADM-111" nombre="Administrador General" tipo="Administrador"/>
+    <usuario clave="abc" especialidad="Cardiología" id="MED-222" nombre="Dr. Juan" tipo="Medico"/>
+    <usuario clave="xyz" id="FAR-333" nombre="Farmacéutica Ana" tipo="Farmaceuta"/>
+</usuarios>
