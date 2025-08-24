@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<medicos>
+    <medico clave="123" especialidad="1" id="1" nombre="1"/>
+</medicos>

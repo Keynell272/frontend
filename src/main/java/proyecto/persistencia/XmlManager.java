@@ -19,6 +19,12 @@ public class XmlManager {
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         return dBuilder.newDocument();
     }
+    private static Document loadDocument(String ruta) throws Exception {
+        File archivo = new File(ruta);
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(archivo);
+    }
 
     private static void saveDocument(Document doc, String ruta) {
         try {
@@ -94,20 +100,22 @@ public class XmlManager {
         return usuarios;
     }
 
-    // ---------------- MÉDICOS ----------------
+    // ---------------- MEDICOS -----------------
     public static void guardarMedicos(List<Medico> medicos, String ruta) {
         try {
             Document doc = createDocument();
             Element root = doc.createElement("medicos");
             doc.appendChild(root);
+
             for (Medico m : medicos) {
-                Element el = doc.createElement("medico");
-                el.setAttribute("id", m.getId());
-                el.setAttribute("clave", m.getClave());
-                el.setAttribute("nombre", m.getNombre());
-                el.setAttribute("especialidad", m.getEspecialidad());
-                root.appendChild(el);
+                Element medico = doc.createElement("medico");
+                medico.setAttribute("id", m.getId());
+                medico.setAttribute("clave", m.getClave());
+                medico.setAttribute("nombre", m.getNombre());
+                medico.setAttribute("especialidad", m.getEspecialidad());
+                root.appendChild(medico);
             }
+
             saveDocument(doc, ruta);
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,19 +125,15 @@ public class XmlManager {
     public static List<Medico> cargarMedicos(String ruta) {
         List<Medico> medicos = new ArrayList<>();
         try {
-            File file = new File(ruta);
-            if (!file.exists()) return medicos;
-
-            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = dBuilder.parse(file);
+            Document doc = loadDocument(ruta);
             NodeList lista = doc.getElementsByTagName("medico");
 
             for (int i = 0; i < lista.getLength(); i++) {
-                Element m = (Element) lista.item(i);
-                String id = m.getAttribute("id");
-                String clave = m.getAttribute("clave");
-                String nombre = m.getAttribute("nombre");
-                String especialidad = m.getAttribute("especialidad");
+                Element el = (Element) lista.item(i);
+                String id = el.getAttribute("id");
+                String clave = el.getAttribute("clave");
+                String nombre = el.getAttribute("nombre");
+                String especialidad = el.getAttribute("especialidad");
                 medicos.add(new Medico(id, clave, nombre, especialidad));
             }
         } catch (Exception e) {
@@ -137,6 +141,7 @@ public class XmlManager {
         }
         return medicos;
     }
+
 
     // ---------------- PACIENTES ----------------
     public static void guardarPacientes(List<Paciente> pacientes, String ruta) {

@@ -1,10 +1,6 @@
 package proyecto.view;
 
-import proyecto.control.ControlAdmin;
-import proyecto.model.Farmaceuta;
-import proyecto.model.Medicamento;
 import proyecto.model.Medico;
-import proyecto.model.Paciente;
 import proyecto.model.Usuario;
 import proyecto.persistencia.XmlManager;
 
@@ -12,25 +8,24 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
-    private ControlAdmin controlAdmin;
+    private DefaultTableModel modeloTabla;
+    private List<Medico> medicos;
+    private JTable tabla;
+
+    // Campos de texto (para usarlos en guardar/limpiar)
+    private JTextField txtId, txtNombre, txtEspecialidad;
 
     public VentanaMenuAdmin(Usuario usuarioLogueado) {
         this.usuarioLogueado = usuarioLogueado;
-
-        // Cargar listas desde XML
-        List<Medico> medicos = XmlManager.cargarMedicos("medicos.xml");
-        List<Farmaceuta> farmaceutas = XmlManager.cargarUsuarios("usuarios.xml").stream()
-                .filter(u -> u instanceof Farmaceuta).map(u -> (Farmaceuta) u).toList();
-        List<Paciente> pacientes = XmlManager.cargarPacientes("pacientes.xml");
-        List<Medicamento> medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
-
-        // Crear instancia de ControlAdmin
-        this.controlAdmin = new ControlAdmin(medicos, farmaceutas, pacientes, medicamentos);
-
+        this.medicos = XmlManager.cargarMedicos("medicos.xml"); // 🔹 cargar médicos desde XML
+        if (this.medicos == null) {
+            this.medicos = new ArrayList<>();
+        }
         init();
     }
 
@@ -40,26 +35,14 @@ public class VentanaMenuAdmin extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        JLabel lblIcono = new JLabel();
-        lblIcono.setHorizontalAlignment(SwingConstants.CENTER);
         setIconImage(new ImageIcon(getClass().getResource("/imagenes/Recetas logo.png")).getImage());
-
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Cargar iconos para cada pestaña (24x24)
-        ImageIcon iconMedicos = cargarIcono("/imagenes/medico logo.png", 24, 24);
-        ImageIcon iconFarmaceutas = cargarIcono("/imagenes/farmaceuta logo.png", 24, 24);
-        ImageIcon iconPacientes = cargarIcono("/imagenes/pacientes logo.png", 24, 24);
-        ImageIcon iconMedicamentos = cargarIcono("/imagenes/medicamentos logos.png", 24, 24);
-        ImageIcon iconDashboard = cargarIcono("/imagenes/dashbord logo.png", 24, 24);
-        ImageIcon iconHistorico = cargarIcono("/imagenes/historico logo.png", 24, 24);
-        ImageIcon iconAcerca = cargarIcono("/imagenes/Acerca de logo.png", 24, 24);
-
-        // Panel para Médicos con contenido complejo
+        // Panel médicos con toda la interfaz
         JPanel panelMedicos = crearPanelMedicos();
 
-        // Paneles simples para las otras pestañas
+        // Otros paneles simples
         JPanel panelFarmaceutas = new JPanel();
         panelFarmaceutas.add(new JLabel("Farmaceutas"));
 
@@ -78,22 +61,22 @@ public class VentanaMenuAdmin extends JFrame {
         JPanel panelAcerca = new JPanel();
         panelAcerca.add(new JLabel("Acerca de..."));
 
-        // Agregar pestañas con título e icono
-        tabbedPane.addTab("Médicos", iconMedicos, panelMedicos);
-        tabbedPane.addTab("Farmaceutas", iconFarmaceutas, panelFarmaceutas);
-        tabbedPane.addTab("Pacientes", iconPacientes, panelPacientes);
-        tabbedPane.addTab("Medicamentos", iconMedicamentos, panelMedicamentos);
-        tabbedPane.addTab("Dashboard", iconDashboard, panelDashboard);
-        tabbedPane.addTab("Histórico", iconHistorico, panelHistorico);
-        tabbedPane.addTab("Acerca de...", iconAcerca, panelAcerca);
+        // Tabs
+        tabbedPane.addTab("Médicos", cargarIcono("/imagenes/medico logo.png", 24, 24), panelMedicos);
+        tabbedPane.addTab("Farmaceutas", cargarIcono("/imagenes/farmaceuta logo.png", 24, 24), panelFarmaceutas);
+        tabbedPane.addTab("Pacientes", cargarIcono("/imagenes/pacientes logo.png", 24, 24), panelPacientes);
+        tabbedPane.addTab("Medicamentos", cargarIcono("/imagenes/medicamentos logos.png", 24, 24), panelMedicamentos);
+        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 24, 24), panelDashboard);
+        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 24, 24), panelHistorico);
+        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 24, 24), panelAcerca);
 
         add(tabbedPane, BorderLayout.CENTER);
     }
 
-    // Método para crear el panel de Médicos con contenido detallado
+    // ===================== PANEL MÉDICOS =====================
     private JPanel crearPanelMedicos() {
         JPanel panel = new JPanel();
-        panel.setLayout(null); // Usamos null layout para posicionar manualmente como en la imagen
+        panel.setLayout(null);
 
         // Etiquetas y campos
         JLabel lblMedico = new JLabel("Médico");
@@ -105,7 +88,7 @@ public class VentanaMenuAdmin extends JFrame {
         lblId.setBounds(10, 40, 50, 20);
         panel.add(lblId);
 
-        JTextField txtId = new JTextField("MED-111");
+        txtId = new JTextField();
         txtId.setBounds(100, 40, 150, 25);
         panel.add(txtId);
 
@@ -113,7 +96,7 @@ public class VentanaMenuAdmin extends JFrame {
         lblNombre.setBounds(10, 70, 50, 20);
         panel.add(lblNombre);
 
-        JTextField txtNombre = new JTextField("David");
+        txtNombre = new JTextField();
         txtNombre.setBounds(100, 70, 150, 25);
         panel.add(txtNombre);
 
@@ -121,45 +104,29 @@ public class VentanaMenuAdmin extends JFrame {
         lblEspecialidad.setBounds(10, 100, 100, 20);
         panel.add(lblEspecialidad);
 
-        JTextField txtEspecialidad = new JTextField("Pediatría");
+        txtEspecialidad = new JTextField();
         txtEspecialidad.setBounds(100, 100, 150, 25);
         panel.add(txtEspecialidad);
 
-        // Botones Guardar, Limpiar, Borrar con iconos
+        // Botones Guardar, Limpiar, Borrar
         JButton btnGuardar = new JButton("Guardar");
         btnGuardar.setBounds(320, 40, 100, 30);
         btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
         panel.add(btnGuardar);
-        
-        btnGuardar.addActionListener(e -> {
-            String id = txtId.getText().trim();
-            String nombre = txtNombre.getText().trim();
-            String especialidad = txtEspecialidad.getText().trim();
-
-            Medico nuevoMedico = new Medico(id, "default", nombre, especialidad);
-            controlAdmin.agregarMedico(nuevoMedico);
-
-            JOptionPane.showMessageDialog(panel, "Médico guardado correctamente.");
-
-        });
 
         JButton btnLimpiar = new JButton("Limpiar");
         btnLimpiar.setBounds(430, 40, 100, 30);
         btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
         panel.add(btnLimpiar);
 
-        btnLimpiar.addActionListener(e -> {
-            txtId.setText("");
-            txtNombre.setText("");
-            txtEspecialidad.setText("");
-        });
+        btnLimpiar.addActionListener(e -> limpiarCampos());
 
         JButton btnBorrar = new JButton("Borrar");
         btnBorrar.setBounds(540, 40, 100, 30);
         btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
         panel.add(btnBorrar);
 
-        // Sección Búsqueda
+        // Sección búsqueda
         JLabel lblBusqueda = new JLabel("Búsqueda");
         lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
         lblBusqueda.setBounds(10, 150, 100, 20);
@@ -183,28 +150,79 @@ public class VentanaMenuAdmin extends JFrame {
         btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
         panel.add(btnReporte);
 
-        // Sección Listado (Tabla)
+        // Tabla de médicos
         JLabel lblListado = new JLabel("Listado");
         lblListado.setFont(new Font("Arial", Font.BOLD, 12));
         lblListado.setBounds(10, 230, 100, 20);
         panel.add(lblListado);
 
         String[] columnas = {"Id", "Nombre", "Especialidad"};
-        Object[][] datos = {
-                {"MED-111", "David", "Pediatría"},
-                {"MED-222", "Miguel", "Neurocirugía"}
-        };
-
-        DefaultTableModel modeloTabla = new DefaultTableModel(datos, columnas);
-        JTable tabla = new JTable(modeloTabla);
+        modeloTabla = new DefaultTableModel(columnas, 0);
+        tabla = new JTable(modeloTabla);
         JScrollPane scrollPane = new JScrollPane(tabla);
         scrollPane.setBounds(10, 260, 650, 300);
         panel.add(scrollPane);
 
+        // 🔹 Cargar médicos desde XML al abrir
+        for (Medico m : medicos) {
+            modeloTabla.addRow(new Object[]{m.getId(), m.getNombre(), m.getEspecialidad()});
+        }
+
+        // Acción Guardar
+        btnGuardar.addActionListener(e -> {
+            String id = txtId.getText().trim();
+            String nombre = txtNombre.getText().trim();
+            String especialidad = txtEspecialidad.getText().trim();
+
+            if (id.isEmpty() || nombre.isEmpty() || especialidad.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Debe llenar todos los campos");
+                return;
+            }
+
+            Medico m = new Medico(id, "123", nombre, especialidad); // clave por defecto
+            medicos.add(m);
+
+            // Tabla
+            modeloTabla.addRow(new Object[]{m.getId(), m.getNombre(), m.getEspecialidad()});
+
+            // Guardar en XML
+            XmlManager.guardarMedicos(medicos, "medicos.xml");
+
+            JOptionPane.showMessageDialog(this, "✅ Médico guardado con éxito");
+            limpiarCampos();
+        });
+
+        btnBorrar.addActionListener(e -> {
+            int fila = tabla.getSelectedRow();
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this, "Seleccione un médico en la tabla para borrar");
+                return;
+            }
+
+            String id = (String) modeloTabla.getValueAt(fila, 0);
+
+            // quitar de la lista
+            medicos.removeIf(m -> m.getId().equals(id));
+
+            // quitar de la tabla
+            modeloTabla.removeRow(fila);
+
+            // actualizar XML
+            XmlManager.guardarMedicos(medicos, "medicos.xml");
+
+            JOptionPane.showMessageDialog(this, "✅ Médico eliminado");
+        });
+
+
         return panel;
     }
 
-    // Método para cargar iconos desde resources y escalar
+    private void limpiarCampos() {
+        txtId.setText("");
+        txtNombre.setText("");
+        txtEspecialidad.setText("");
+    }
+
     private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
         URL url = getClass().getResource(ruta);
         if (url == null) {
@@ -215,5 +233,4 @@ public class VentanaMenuAdmin extends JFrame {
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
-
 }
