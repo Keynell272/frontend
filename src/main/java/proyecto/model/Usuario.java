@@ -18,4 +18,5 @@ public abstract class Usuario {
     public void setClave(String nuevaClave) {
         this.clave = nuevaClave;
     }
+    public abstract String getRol();
 }

@@ -8,7 +8,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.net.URL;
 
-
 public class VentanaLogin extends JFrame {
     private ControlLogin controlLogin;
     private JTextField txtId;
@@ -26,13 +25,12 @@ public class VentanaLogin extends JFrame {
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
+
     private ImageIcon escalarIcono2(String ruta, int ancho, int alto) {
         ImageIcon iconoOriginal = new ImageIcon(getClass().getResource(ruta));
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
-
-    // En tu constructor o método de inicialización
 
     private void init() {
         setTitle("Recetas");
@@ -46,25 +44,17 @@ public class VentanaLogin extends JFrame {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(230, 233, 237));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5,5,5,5);
+        gbc.insets = new Insets(5, 5, 5, 5);
 
-        // Icono superior (usuario)
+        // Icono superior
         JLabel lblIcono = new JLabel();
         lblIcono.setHorizontalAlignment(SwingConstants.CENTER);
-        setIconImage(new ImageIcon(getClass().getResource("/imagenes/Recetas logo.png")).getImage()); // <-- coloca aquí tu imagen
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        panel.add(lblIcono, gbc);
+        setIconImage(new ImageIcon(getClass().getResource("/imagenes/Recetas logo.png")).getImage());
 
         JLabel lblIcono2 = new JLabel();
         lblIcono2.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Escalar la imagen a 48x48
         lblIcono2.setIcon(escalarIcono2("/imagenes/Seguridad-logo.png", 48, 48));
-
-        // Posicionamiento con GridBagLayout
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         panel.add(lblIcono2, gbc);
 
         // Campo ID
@@ -82,14 +72,12 @@ public class VentanaLogin extends JFrame {
         txtClave = new JPasswordField(15);
         panel.add(txtClave, gbc);
 
-        // En tu constructor o método de inicialización
+        // Botones
         JPanel panelBotones = new JPanel(new FlowLayout());
         btnEntrar = new JButton(escalarIcono(getClass().getResource("/imagenes/Entrar logo.png"), 32, 32));
         btnBorrar = new JButton(escalarIcono(getClass().getResource("/imagenes/X logo.png"), 32, 32));
         btnCambiarClave = new JButton(escalarIcono(getClass().getResource("/imagenes/clave de seguridad logo.png"), 32, 32));
 
-
-        // Quitar bordes
         btnEntrar.setBorderPainted(true);
         btnEntrar.setContentAreaFilled(true);
         btnBorrar.setBorderPainted(true);
@@ -97,7 +85,6 @@ public class VentanaLogin extends JFrame {
         btnCambiarClave.setBorderPainted(true);
         btnCambiarClave.setContentAreaFilled(true);
 
-        // Funcionalidad botones
         btnEntrar.addActionListener(this::loginAction);
         btnBorrar.addActionListener(e -> limpiarCampos());
 
@@ -110,6 +97,7 @@ public class VentanaLogin extends JFrame {
 
         add(panel, BorderLayout.CENTER);
 
+        // Acción del botón Cambiar Clave
         btnCambiarClave.addActionListener(e -> {
             String id = txtId.getText().trim();
             String clave = new String(txtClave.getPassword());
@@ -121,11 +109,9 @@ public class VentanaLogin extends JFrame {
                 JOptionPane.showMessageDialog(this, "Debe iniciar sesión para cambiar la clave");
             }
         });
-
-
-
     }
 
+    // ✅ Acción de login con integración a VentanaMenuAdmin
     private void loginAction(ActionEvent e) {
         String id = txtId.getText().trim();
         String clave = new String(txtClave.getPassword());
@@ -133,10 +119,11 @@ public class VentanaLogin extends JFrame {
         Usuario u = controlLogin.login(id, clave);
 
         if (u != null) {
-            JOptionPane.showMessageDialog(this, "Bienvenido " + u.getNombre() +
-                    " (" + u.getClass().getSimpleName() + ")");
-            dispose();
-            // Aquí abres el menú correspondiente (igual que antes)
+            JOptionPane.showMessageDialog(this, "Bienvenido " + u.getId() + " (" + u.getRol() + ")");
+            
+            // Abre la ventana principal pasando al usuario logueado
+            new VentanaMenuAdmin(u).setVisible(true);
+            dispose(); // Cierra el login
         } else {
             JOptionPane.showMessageDialog(this, "Usuario o clave incorrecta");
         }
@@ -146,6 +133,4 @@ public class VentanaLogin extends JFrame {
         txtId.setText("");
         txtClave.setText("");
     }
-
-    
 }

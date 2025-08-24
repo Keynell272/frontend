@@ -23,6 +23,7 @@ public class ControlAdmin {
     public Medico buscarMedico(String id) {
         return medicos.stream().filter(m -> m.getId().equals(id)).findFirst().orElse(null);
     }
+    
 
     // ------------------ CRUD Farmaceutas ------------------
     public void agregarFarmaceuta(Farmaceuta f) { farmaceutas.add(f); }
@@ -35,4 +36,8 @@ public class ControlAdmin {
     // ------------------ CRUD Medicamentos ------------------
     public void agregarMedicamento(Medicamento m) { medicamentos.add(m); }
     public void eliminarMedicamento(String codigo) { medicamentos.removeIf(m -> m.getCodigo().equals(codigo)); }
+    
+    public List<Medico> getMedicos() {
+        return medicos;
+    }
 }

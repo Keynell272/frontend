@@ -94,6 +94,50 @@ public class XmlManager {
         return usuarios;
     }
 
+    // ---------------- MÉDICOS ----------------
+    public static void guardarMedicos(List<Medico> medicos, String ruta) {
+        try {
+            Document doc = createDocument();
+            Element root = doc.createElement("medicos");
+            doc.appendChild(root);
+            for (Medico m : medicos) {
+                Element el = doc.createElement("medico");
+                el.setAttribute("id", m.getId());
+                el.setAttribute("clave", m.getClave());
+                el.setAttribute("nombre", m.getNombre());
+                el.setAttribute("especialidad", m.getEspecialidad());
+                root.appendChild(el);
+            }
+            saveDocument(doc, ruta);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<Medico> cargarMedicos(String ruta) {
+        List<Medico> medicos = new ArrayList<>();
+        try {
+            File file = new File(ruta);
+            if (!file.exists()) return medicos;
+
+            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = dBuilder.parse(file);
+            NodeList lista = doc.getElementsByTagName("medico");
+
+            for (int i = 0; i < lista.getLength(); i++) {
+                Element m = (Element) lista.item(i);
+                String id = m.getAttribute("id");
+                String clave = m.getAttribute("clave");
+                String nombre = m.getAttribute("nombre");
+                String especialidad = m.getAttribute("especialidad");
+                medicos.add(new Medico(id, clave, nombre, especialidad));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return medicos;
+    }
+
     // ---------------- PACIENTES ----------------
     public static void guardarPacientes(List<Paciente> pacientes, String ruta) {
         try {

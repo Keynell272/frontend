@@ -9,4 +9,7 @@ public class Medico extends Usuario {
     }
 
     public String getEspecialidad() { return especialidad; }
+    public String getRol() {
+        return "MED";
+    }
 }
