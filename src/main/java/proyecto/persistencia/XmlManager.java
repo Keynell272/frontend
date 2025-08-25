@@ -142,6 +142,42 @@ public class XmlManager {
         return medicos;
     }
 
+    // ---------------- FARMACEUTAS -----------------
+
+    public static void guardarFarmaceutas(List<Farmaceuta> farmaceutas, String ruta) {
+        try {
+            Document doc = createDocument();
+            Element root = doc.createElement("farmaceutas");
+            doc.appendChild(root);
+            for (Farmaceuta f : farmaceutas) {
+                Element farmaceuta = doc.createElement("farmaceuta");
+                farmaceuta.setAttribute("id", f.getId());
+                farmaceuta.setAttribute("clave", f.getClave());
+                farmaceuta.setAttribute("nombre", f.getNombre());
+                root.appendChild(farmaceuta);
+            }
+            saveDocument(doc, ruta);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static List<Farmaceuta> cargarFarmaceutas(String ruta) {
+        List<Farmaceuta> farmaceutas = new ArrayList<>();
+        try {
+            Document doc = loadDocument(ruta);
+            NodeList lista = doc.getElementsByTagName("farmaceuta");
+            for (int i = 0; i < lista.getLength(); i++) {
+                Element el = (Element) lista.item(i);
+                String id = el.getAttribute("id");
+                String clave = el.getAttribute("clave");
+                String nombre = el.getAttribute("nombre");
+                farmaceutas.add(new Farmaceuta(id, clave, nombre));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return farmaceutas;
+    }
 
     // ---------------- PACIENTES ----------------
     public static void guardarPacientes(List<Paciente> pacientes, String ruta) {
