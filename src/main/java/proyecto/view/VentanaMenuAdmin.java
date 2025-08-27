@@ -1,6 +1,7 @@
 package proyecto.view;
 
 import proyecto.model.Medico;
+import proyecto.model.Paciente;
 import proyecto.model.Usuario;
 import proyecto.model.Farmaceuta;
 import proyecto.persistencia.XmlManager;
@@ -23,6 +24,11 @@ public class VentanaMenuAdmin extends JFrame {
     private List<Farmaceuta> farmaceutas;  // si tenés clase Farmaceuta, usala aquí
     private JTable tablaFarm;
     private JTextField txtIdFarm, txtNombreFarm, txtBusquedaNombreFarm;
+    private DefaultTableModel modeloTablaPac;
+    private List<Paciente> pacientes;
+    private JTable tablaPac;
+    private JTextField txtIdPac, txtNombrePac, txtTelefonoPac, txtBusquedaNombrePac;
+    private JSpinner spFechaNacPac;
 
 
     // Campos de texto (para usarlos en guardar/limpiar)
@@ -37,6 +43,10 @@ public class VentanaMenuAdmin extends JFrame {
         this.farmaceutas = XmlManager.cargarFarmaceutas("farmaceutas.xml");
         if (this.farmaceutas == null) {
             this.farmaceutas = new ArrayList<>();
+        }
+        this.pacientes = XmlManager.cargarPacientes("pacientes.xml");
+        if (this.pacientes == null) {
+            this.pacientes = new ArrayList<>();
         }
 
         init();
@@ -59,7 +69,7 @@ public class VentanaMenuAdmin extends JFrame {
         JPanel panelFarmaceutas = crearPanelFarmaceutas();
         panelFarmaceutas.add(new JLabel("Farmaceutas"));
 
-        JPanel panelPacientes = new JPanel();
+        JPanel panelPacientes = crearPanelPacientes();
         panelPacientes.add(new JLabel("Pacientes"));
 
         JPanel panelMedicamentos = new JPanel();
@@ -459,6 +469,185 @@ public class VentanaMenuAdmin extends JFrame {
             JScrollPane sp = new JScrollPane(area);
             sp.setPreferredSize(new Dimension(500, 300));
             JOptionPane.showMessageDialog(this, sp, "Reporte de Farmacéutas", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        return panel;
+    }
+
+    private JPanel crearPanelPacientes() {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+
+        JLabel lblPac = new JLabel("Paciente");
+        lblPac.setFont(new Font("Arial", Font.BOLD, 12));
+        lblPac.setBounds(10, 10, 100, 20);
+        panel.add(lblPac);
+
+        JLabel lblId = new JLabel("Id");
+        lblId.setBounds(10, 40, 50, 20);
+        panel.add(lblId);
+
+        txtIdPac = new JTextField();
+        txtIdPac.setBounds(100, 40, 150, 25);
+        panel.add(txtIdPac);
+
+        JLabel lblNombre = new JLabel("Nombre");
+        lblNombre.setBounds(10, 70, 50, 20);
+        panel.add(lblNombre);
+
+        txtNombrePac = new JTextField();
+        txtNombrePac.setBounds(100, 70, 150, 25);
+        panel.add(txtNombrePac);
+
+        JLabel lblFecha = new JLabel("Fecha Nac.");
+        lblFecha.setBounds(10, 100, 100, 20);
+        panel.add(lblFecha);
+
+        spFechaNacPac = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor editor = new JSpinner.DateEditor(spFechaNacPac, "dd/MM/yyyy");
+        spFechaNacPac.setEditor(editor);
+        spFechaNacPac.setBounds(100, 100, 150, 25);
+        panel.add(spFechaNacPac);
+
+        JLabel lblTel = new JLabel("Teléfono");
+        lblTel.setBounds(10, 130, 100, 20);
+        panel.add(lblTel);
+
+        txtTelefonoPac = new JTextField();
+        txtTelefonoPac.setBounds(100, 130, 150, 25);
+        panel.add(txtTelefonoPac);
+
+        // Botones
+        JButton btnGuardar = new JButton("Guardar");
+        btnGuardar.setBounds(320, 40, 100, 30);
+        btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
+        panel.add(btnGuardar);
+
+        JButton btnLimpiar = new JButton("Limpiar");
+        btnLimpiar.setBounds(430, 40, 100, 30);
+        btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
+        panel.add(btnLimpiar);
+
+        JButton btnBorrar = new JButton("Borrar");
+        btnBorrar.setBounds(540, 40, 100, 30);
+        btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
+        panel.add(btnBorrar);
+
+        // Búsqueda
+        JLabel lblBusqueda = new JLabel("Búsqueda");
+        lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
+        lblBusqueda.setBounds(10, 170, 100, 20);
+        panel.add(lblBusqueda);
+
+        JLabel lblBusquedaNombre = new JLabel("Nombre");
+        lblBusquedaNombre.setBounds(10, 200, 60, 20);
+        panel.add(lblBusquedaNombre);
+
+        txtBusquedaNombrePac = new JTextField();
+        txtBusquedaNombrePac.setBounds(80, 200, 150, 25);
+        panel.add(txtBusquedaNombrePac);
+
+        JButton btnBuscar = new JButton("Buscar");
+        btnBuscar.setBounds(240, 200, 100, 30);
+        btnBuscar.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
+        panel.add(btnBuscar);
+
+        JButton btnRestaurar = new JButton("⟳");
+        btnRestaurar.setBounds(350, 200, 50, 30);
+        panel.add(btnRestaurar);
+
+        JButton btnReporte = new JButton("Reporte");
+        btnReporte.setBounds(410, 200, 100, 30);
+        btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
+        panel.add(btnReporte);
+
+        // Tabla
+        JLabel lblListado = new JLabel("Listado");
+        lblListado.setFont(new Font("Arial", Font.BOLD, 12));
+        lblListado.setBounds(10, 250, 100, 20);
+        panel.add(lblListado);
+
+        String[] columnas = {"Id", "Nombre", "Fecha Nac.", "Teléfono"};
+        modeloTablaPac = new DefaultTableModel(columnas, 0);
+        tablaPac = new JTable(modeloTablaPac);
+        JScrollPane scrollPane = new JScrollPane(tablaPac);
+        scrollPane.setBounds(10, 280, 650, 280);
+        panel.add(scrollPane);
+
+        // Cargar pacientes al abrir
+        for (Paciente p : pacientes) {
+            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+        }
+
+        // Acciones
+        btnGuardar.addActionListener(e -> {
+            String id = txtIdPac.getText().trim();
+            String nombre = txtNombrePac.getText().trim();
+            String tel = txtTelefonoPac.getText().trim();
+            java.util.Date fecha = (java.util.Date) spFechaNacPac.getValue();
+
+            if (id.isEmpty() || nombre.isEmpty() || tel.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Debe llenar todos los campos");
+                return;
+            }
+
+            Paciente p = new Paciente(id, nombre, fecha, tel);
+            pacientes.add(p);
+            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+            XmlManager.guardarPacientes(pacientes, "pacientes.xml");
+
+            JOptionPane.showMessageDialog(this, "✅ Paciente guardado con éxito");
+            txtIdPac.setText(""); txtNombrePac.setText(""); txtTelefonoPac.setText("");
+        });
+
+        btnLimpiar.addActionListener(e -> {
+            txtIdPac.setText(""); txtNombrePac.setText(""); txtTelefonoPac.setText("");
+        });
+
+        btnBorrar.addActionListener(e -> {
+            int fila = tablaPac.getSelectedRow();
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this, "Seleccione un paciente");
+                return;
+            }
+            String id = (String) modeloTablaPac.getValueAt(fila, 0);
+            pacientes.removeIf(p -> p.getId().equals(id));
+            modeloTablaPac.removeRow(fila);
+            XmlManager.guardarPacientes(pacientes, "pacientes.xml");
+            JOptionPane.showMessageDialog(this, "✅ Paciente eliminado");
+        });
+
+        btnBuscar.addActionListener(e -> {
+            String buscar = txtBusquedaNombrePac.getText().trim().toLowerCase();
+            modeloTablaPac.setRowCount(0);
+            for (Paciente p : pacientes) {
+                if (p.getNombre().toLowerCase().contains(buscar)) {
+                    modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+                }
+            }
+        });
+
+        btnRestaurar.addActionListener(e -> {
+            modeloTablaPac.setRowCount(0);
+            for (Paciente p : pacientes) {
+                modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+            }
+        });
+
+        btnReporte.addActionListener(e -> {
+            StringBuilder sb = new StringBuilder("=== Reporte de Pacientes ===\n\n");
+            for (Paciente p : pacientes) {
+                sb.append("ID: ").append(p.getId())
+                .append(" | Nombre: ").append(p.getNombre())
+                .append(" | Fecha Nac.: ").append(p.getFechaNacimiento())
+                .append(" | Tel: ").append(p.getTelefono())
+                .append("\n");
+            }
+            JTextArea area = new JTextArea(sb.toString());
+            area.setEditable(false);
+            JScrollPane sp = new JScrollPane(area);
+            sp.setPreferredSize(new Dimension(500, 300));
+            JOptionPane.showMessageDialog(this, sp, "Reporte de Pacientes", JOptionPane.INFORMATION_MESSAGE);
         });
 
         return panel;
