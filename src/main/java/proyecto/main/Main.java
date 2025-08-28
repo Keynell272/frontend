@@ -33,7 +33,7 @@ public class Main {
             System.out.println("Archivo " + rutaUsuarios + " creado con usuarios de prueba.");
         }
 
-        ControlLogin controlLogin = new ControlLogin(usuarios);
+        ControlLogin controlLogin = new ControlLogin();
 
         SwingUtilities.invokeLater(() -> {
             new VentanaLogin(controlLogin).setVisible(true);

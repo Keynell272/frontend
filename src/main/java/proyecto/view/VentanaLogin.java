@@ -1,12 +1,29 @@
 package proyecto.view;
 
-import proyecto.control.ControlLogin;
-import proyecto.model.Usuario;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
+import proyecto.control.ControlLogin;
+import proyecto.model.Farmaceuta;
+import proyecto.model.Medico;
+import proyecto.model.Usuario;
 
 public class VentanaLogin extends JFrame {
     private ControlLogin controlLogin;
@@ -47,10 +64,6 @@ public class VentanaLogin extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
 
         // Icono superior
-        JLabel lblIcono = new JLabel();
-        lblIcono.setHorizontalAlignment(SwingConstants.CENTER);
-        setIconImage(new ImageIcon(getClass().getResource("/imagenes/Recetas logo.png")).getImage());
-
         JLabel lblIcono2 = new JLabel();
         lblIcono2.setHorizontalAlignment(SwingConstants.CENTER);
         lblIcono2.setIcon(escalarIcono2("/imagenes/Seguridad-logo.png", 48, 48));
@@ -104,14 +117,15 @@ public class VentanaLogin extends JFrame {
             Usuario u = controlLogin.login(id, clave);
 
             if (u != null) {
-                new VentanaCambiarClave(u, controlLogin.getUsuarios(), this).setVisible(true);
+                // Asumiendo que VentanaCambiarClave acepta Usuario y ControlLogin
+                
             } else {
                 JOptionPane.showMessageDialog(this, "Debe iniciar sesión para cambiar la clave");
             }
         });
     }
 
-    // ✅ Acción de login con integración a VentanaMenuAdmin
+    // Acción de login con ventanas según tipo de usuario
     private void loginAction(ActionEvent e) {
         String id = txtId.getText().trim();
         String clave = new String(txtClave.getPassword());
@@ -120,10 +134,17 @@ public class VentanaLogin extends JFrame {
 
         if (u != null) {
             JOptionPane.showMessageDialog(this, "Bienvenido " + u.getId() + " (" + u.getRol() + ")");
-            
-            // Abre la ventana principal pasando al usuario logueado
-            new VentanaMenuAdmin(u).setVisible(true);
-            dispose(); // Cierra el login
+
+            if (u instanceof Medico) {
+                new VentanaMenuMedico((Medico) u).setVisible(true);
+            } else if (u instanceof Farmaceuta) {
+               
+            } else {
+                new VentanaMenuAdmin(u).setVisible(true);
+            }
+
+            dispose();
+
         } else {
             JOptionPane.showMessageDialog(this, "Usuario o clave incorrecta");
         }
