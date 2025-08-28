@@ -1,17 +1,22 @@
 package proyecto.view;
 
 import proyecto.model.Medico;
-import proyecto.model.Paciente;
 import proyecto.model.Usuario;
 import proyecto.model.Farmaceuta;
+import proyecto.model.Medicamento;
+import proyecto.model.Paciente;
 import proyecto.persistencia.XmlManager;
-
+import java.util.Date;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.text.SimpleDateFormat;
+
+
+import proyecto.model.DatePickerConNavegacion;
 
 public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
@@ -24,15 +29,21 @@ public class VentanaMenuAdmin extends JFrame {
     private List<Farmaceuta> farmaceutas;  // si tenés clase Farmaceuta, usala aquí
     private JTable tablaFarm;
     private JTextField txtIdFarm, txtNombreFarm, txtBusquedaNombreFarm;
+    
     private DefaultTableModel modeloTablaPac;
     private List<Paciente> pacientes;
     private JTable tablaPac;
     private JTextField txtIdPac, txtNombrePac, txtTelefonoPac, txtBusquedaNombrePac;
-    private JSpinner spFechaNacPac;
-
+    private List<Medicamento> medicamentos;
 
     // Campos de texto (para usarlos en guardar/limpiar)
     private JTextField txtId, txtNombre, txtEspecialidad;
+
+    private String formatearFecha(Date fecha) {
+        if (fecha == null) return "";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        return sdf.format(fecha);
+    }
 
     public VentanaMenuAdmin(Usuario usuarioLogueado) {
         this.usuarioLogueado = usuarioLogueado;
@@ -47,6 +58,10 @@ public class VentanaMenuAdmin extends JFrame {
         this.pacientes = XmlManager.cargarPacientes("pacientes.xml");
         if (this.pacientes == null) {
             this.pacientes = new ArrayList<>();
+        }
+        this.medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
+        if (this.medicamentos == null) {
+            this.medicamentos = new ArrayList<>();
         }
 
         init();
@@ -72,7 +87,7 @@ public class VentanaMenuAdmin extends JFrame {
         JPanel panelPacientes = crearPanelPacientes();
         panelPacientes.add(new JLabel("Pacientes"));
 
-        JPanel panelMedicamentos = new JPanel();
+        JPanel panelMedicamentos = crearPanelMedicamentos();
         panelMedicamentos.add(new JLabel("Medicamentos"));
 
         JPanel panelDashboard = new JPanel();
@@ -81,8 +96,7 @@ public class VentanaMenuAdmin extends JFrame {
         JPanel panelHistorico = new JPanel();
         panelHistorico.add(new JLabel("Histórico"));
 
-        JPanel panelAcerca = new JPanel();
-        panelAcerca.add(new JLabel("Acerca de..."));
+        JPanel panelAcerca = crearPanelAcercaDe();
 
         // Tabs
         tabbedPane.addTab("Médicos", cargarIcono("/imagenes/medico logo.png", 24, 24), panelMedicos);
@@ -499,15 +513,19 @@ public class VentanaMenuAdmin extends JFrame {
         txtNombrePac.setBounds(100, 70, 150, 25);
         panel.add(txtNombrePac);
 
-        JLabel lblFecha = new JLabel("Fecha Nac.");
-        lblFecha.setBounds(10, 100, 100, 20);
-        panel.add(lblFecha);
+        JTextField txtFechaNac = new JTextField();
+        txtFechaNac.setBounds(100, 100, 150, 25);
+        panel.add(txtFechaNac);
 
-        spFechaNacPac = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor editor = new JSpinner.DateEditor(spFechaNacPac, "dd/MM/yyyy");
-        spFechaNacPac.setEditor(editor);
-        spFechaNacPac.setBounds(100, 100, 150, 25);
-        panel.add(spFechaNacPac);
+        JLabel lblFechaNac = new JLabel("Fecha Nac.");
+        lblFechaNac.setBounds(10, 100, 100, 20);
+        panel.add(lblFechaNac);
+
+        JButton btnCalendario = new JButton("📅");
+        btnCalendario.setBounds(260, 100, 50, 25);
+        panel.add(btnCalendario);
+        
+        DatePickerConNavegacion datePicker = new DatePickerConNavegacion(txtFechaNac, btnCalendario);
 
         JLabel lblTel = new JLabel("Teléfono");
         lblTel.setBounds(10, 130, 100, 20);
@@ -576,7 +594,7 @@ public class VentanaMenuAdmin extends JFrame {
 
         // Cargar pacientes al abrir
         for (Paciente p : pacientes) {
-            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
         }
 
         // Acciones
@@ -584,7 +602,20 @@ public class VentanaMenuAdmin extends JFrame {
             String id = txtIdPac.getText().trim();
             String nombre = txtNombrePac.getText().trim();
             String tel = txtTelefonoPac.getText().trim();
-            java.util.Date fecha = (java.util.Date) spFechaNacPac.getValue();
+            Date fecha = null;
+            try {
+                if (!txtFechaNac.getText().isEmpty()) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    fecha = sdf.parse(txtFechaNac.getText());
+                } else {
+                    JOptionPane.showMessageDialog(this, "Debe seleccionar la fecha de nacimiento");
+                    return;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Formato de fecha inválido");
+                return;
+            }
 
             if (id.isEmpty() || nombre.isEmpty() || tel.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Debe llenar todos los campos");
@@ -593,7 +624,7 @@ public class VentanaMenuAdmin extends JFrame {
 
             Paciente p = new Paciente(id, nombre, fecha, tel);
             pacientes.add(p);
-            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
             XmlManager.guardarPacientes(pacientes, "pacientes.xml");
 
             JOptionPane.showMessageDialog(this, "✅ Paciente guardado con éxito");
@@ -622,7 +653,7 @@ public class VentanaMenuAdmin extends JFrame {
             modeloTablaPac.setRowCount(0);
             for (Paciente p : pacientes) {
                 if (p.getNombre().toLowerCase().contains(buscar)) {
-                    modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+                    modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
                 }
             }
         });
@@ -630,7 +661,7 @@ public class VentanaMenuAdmin extends JFrame {
         btnRestaurar.addActionListener(e -> {
             modeloTablaPac.setRowCount(0);
             for (Paciente p : pacientes) {
-                modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), p.getFechaNacimiento(), p.getTelefono()});
+                modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
             }
         });
 
@@ -639,7 +670,7 @@ public class VentanaMenuAdmin extends JFrame {
             for (Paciente p : pacientes) {
                 sb.append("ID: ").append(p.getId())
                 .append(" | Nombre: ").append(p.getNombre())
-                .append(" | Fecha Nac.: ").append(p.getFechaNacimiento())
+                .append(" | Fecha Nac.: ").append(formatearFecha(p.getFechaNacimiento()))
                 .append(" | Tel: ").append(p.getTelefono())
                 .append("\n");
             }
@@ -653,6 +684,229 @@ public class VentanaMenuAdmin extends JFrame {
         return panel;
     }
 
+    private JPanel crearPanelAcercaDe() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBackground(new Color(230, 233, 237));
+
+        // Título arriba
+        JLabel lblTitulo = new JLabel("Prescripcion y Despacho de Recetas", SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
+        lblTitulo.setForeground(Color.BLUE);
+
+        panel.add(lblTitulo, BorderLayout.NORTH);
+        
+        // Imagen central
+        JLabel lblImagen = new JLabel();
+        lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
+        lblImagen.setIcon(cargarIcono("/imagenes/hospital imagen principal.jpg", 700, 400)); 
+        // ⚠️ Asegurate que hospital.png esté en tu carpeta resources/imagenes
+        panel.add(lblImagen, BorderLayout.CENTER);
+        
+        // Subtítulo
+        JPanel subPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        subPanel.setBackground(new Color(230, 233, 237));
+
+        JLabel lblInfo = new JLabel("Total Soft Inc.   @totalsoft   Tel. 67197691");
+        lblInfo.setFont(new Font("Arial", Font.PLAIN, 14));
+        subPanel.add(lblInfo);
+
+        panel.add(subPanel, BorderLayout.SOUTH);
+
+        
+
+        return panel;
+    }
+
+    private JPanel crearPanelMedicamentos() {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+
+        // Etiquetas y campos
+        JLabel lblTitulo = new JLabel("Medicamento");
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 12));
+        lblTitulo.setBounds(10, 10, 100, 20);
+        panel.add(lblTitulo);
+
+        JLabel lblCodigo = new JLabel("Código");
+        lblCodigo.setBounds(10, 40, 50, 20);
+        panel.add(lblCodigo);
+
+        JTextField txtCodigo = new JTextField();
+        txtCodigo.setBounds(100, 40, 150, 25);
+        panel.add(txtCodigo);
+
+        JLabel lblNombre = new JLabel("Nombre");
+        lblNombre.setBounds(10, 70, 50, 20);
+        panel.add(lblNombre);
+
+        JTextField txtNombre = new JTextField();
+        txtNombre.setBounds(100, 70, 150, 25);
+        panel.add(txtNombre);
+
+        JLabel lblPresentacion = new JLabel("Presentación");
+        lblPresentacion.setBounds(10, 100, 100, 20);
+        panel.add(lblPresentacion);
+
+        JTextField txtPresentacion = new JTextField();
+        txtPresentacion.setBounds(100, 100, 150, 25);
+        panel.add(txtPresentacion);
+
+        // Botones
+        JButton btnGuardar = new JButton("Guardar");
+        btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
+        btnGuardar.setBounds(320, 40, 100, 30);
+        panel.add(btnGuardar);
+
+        JButton btnLimpiar = new JButton("Limpiar");
+        btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
+        btnLimpiar.setBounds(430, 40, 100, 30);
+        panel.add(btnLimpiar);
+
+        JButton btnBorrar = new JButton("Borrar");
+        btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
+        btnBorrar.setBounds(540, 40, 100, 30);
+        panel.add(btnBorrar);
+
+        // Búsqueda
+        JLabel lblBusqueda = new JLabel("Búsqueda");
+        lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
+        lblBusqueda.setBounds(10, 150, 100, 20);
+        panel.add(lblBusqueda);
+
+        JLabel lblBusquedaNombre = new JLabel("Nombre");
+        lblBusquedaNombre.setBounds(10, 180, 60, 20);
+        panel.add(lblBusquedaNombre);
+
+        JTextField txtBusquedaNombre = new JTextField();
+        txtBusquedaNombre.setBounds(80, 180, 150, 25);
+        panel.add(txtBusquedaNombre);
+
+        JButton btnBuscar = new JButton("Buscar");
+        btnBuscar.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
+        btnBuscar.setBounds(240, 180, 100, 30);
+        panel.add(btnBuscar);
+
+        JButton btnRestaurar = new JButton("⟳");
+        btnRestaurar.setBounds(350, 180, 50, 30);
+        panel.add(btnRestaurar);
+
+        JButton btnReporte = new JButton("Reporte");
+        btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
+        btnReporte.setBounds(410, 180, 100, 30);
+        panel.add(btnReporte);
+
+        // Tabla de medicamentos
+        JLabel lblListado = new JLabel("Listado");
+        lblListado.setFont(new Font("Arial", Font.BOLD, 12));
+        lblListado.setBounds(10, 230, 100, 20);
+        panel.add(lblListado);
+
+        String[] columnas = {"Código", "Nombre", "Presentación"};
+        DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0);
+        JTable tabla = new JTable(modeloTabla);
+        JScrollPane scrollPane = new JScrollPane(tabla);
+        scrollPane.setBounds(10, 260, 650, 300);
+        panel.add(scrollPane);
+
+        // Cargar medicamentos desde XML
+        for (Medicamento med : medicamentos) {
+            modeloTabla.addRow(new Object[]{med.getCodigo(), med.getNombre(), med.getPresentacion()});
+        }
+
+        // Funcionalidades
+        btnGuardar.addActionListener(e -> {
+            String codigo = txtCodigo.getText().trim();
+            String nombre = txtNombre.getText().trim();
+            String presentacion = txtPresentacion.getText().trim();
+
+            if (codigo.isEmpty() || nombre.isEmpty() || presentacion.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Debe llenar todos los campos");
+                return;
+            }
+
+            Medicamento med = new Medicamento(codigo, nombre, presentacion);
+            medicamentos.add(med);
+
+            modeloTabla.addRow(new Object[]{med.getCodigo(), med.getNombre(), med.getPresentacion()});
+
+            XmlManager.guardarMedicamentos(medicamentos, "medicamentos.xml");
+
+            JOptionPane.showMessageDialog(this, "✅ Medicamento guardado con éxito");
+            txtCodigo.setText("");
+            txtNombre.setText("");
+            txtPresentacion.setText("");
+        });
+
+        btnLimpiar.addActionListener(e -> {
+            txtCodigo.setText("");
+            txtNombre.setText("");
+            txtPresentacion.setText("");
+        });
+
+        btnBorrar.addActionListener(e -> {
+            int fila = tabla.getSelectedRow();
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this, "Seleccione un medicamento en la tabla para borrar");
+                return;
+            }
+
+            String codigo = (String) modeloTabla.getValueAt(fila, 0);
+            medicamentos.removeIf(m -> m.getCodigo().equals(codigo));
+            modeloTabla.removeRow(fila);
+
+            XmlManager.guardarMedicamentos(medicamentos, "medicamentos.xml");
+
+            JOptionPane.showMessageDialog(this, "✅ Medicamento eliminado");
+        });
+
+        btnBuscar.addActionListener(e -> {
+            String nombreBuscar = txtBusquedaNombre.getText().trim().toLowerCase();
+            if (nombreBuscar.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Ingrese un nombre para buscar");
+                return;
+            }
+
+            modeloTabla.setRowCount(0);
+
+            for (Medicamento m : medicamentos) {
+                if (m.getNombre().toLowerCase().contains(nombreBuscar)) {
+                    modeloTabla.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
+                }
+            }
+        });
+
+        btnRestaurar.addActionListener(e -> {
+            modeloTabla.setRowCount(0);
+            for (Medicamento m : medicamentos) {
+                modeloTabla.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
+            }
+        });
+
+        btnReporte.addActionListener(e -> {
+            if (medicamentos.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay medicamentos para el reporte");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder("=== Reporte de Medicamentos ===\n\n");
+            for (Medicamento m : medicamentos) {
+                sb.append("Código: ").append(m.getCodigo())
+                .append(" | Nombre: ").append(m.getNombre())
+                .append(" | Presentación: ").append(m.getPresentacion())
+                .append("\n");
+            }
+
+            JTextArea area = new JTextArea(sb.toString());
+            area.setEditable(false);
+            JScrollPane scroll = new JScrollPane(area);
+            scroll.setPreferredSize(new Dimension(500, 300));
+
+            JOptionPane.showMessageDialog(this, scroll, "Reporte de Medicamentos", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        return panel;
+    }
 
     private void limpiarCampos() {
         txtId.setText("");

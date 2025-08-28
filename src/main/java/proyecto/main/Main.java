@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.*;
 
+
 public class Main {
     public static void main(String[] args) {
         // Ruta del archivo XML de usuarios
@@ -33,7 +34,7 @@ public class Main {
             System.out.println("Archivo " + rutaUsuarios + " creado con usuarios de prueba.");
         }
 
-        ControlLogin controlLogin = new ControlLogin(usuarios);
+        ControlLogin controlLogin = new ControlLogin();
 
         SwingUtilities.invokeLater(() -> {
             new VentanaLogin(controlLogin).setVisible(true);

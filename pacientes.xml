@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<pacientes/>
+<pacientes>
+    <paciente fechaNac="2025-08-18" id="1" nombre="1" telefono="1"/>
+    <paciente fechaNac="2021-08-17" id="2" nombre="2" telefono="2"/>
+</pacientes>

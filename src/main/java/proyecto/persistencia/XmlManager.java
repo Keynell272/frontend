@@ -2,6 +2,7 @@ package proyecto.persistencia;
 
 import proyecto.model.*;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -9,6 +10,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.text.SimpleDateFormat;
 
 import org.w3c.dom.*;
 
@@ -186,11 +188,13 @@ public class XmlManager {
             Element root = doc.createElement("pacientes");
             doc.appendChild(root);
 
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // formato legible
+
             for (Paciente p : pacientes) {
                 Element el = doc.createElement("paciente");
                 el.setAttribute("id", p.getId());
                 el.setAttribute("nombre", p.getNombre());
-                el.setAttribute("fechaNac", String.valueOf(p.getFechaNacimiento().getTime()));
+                el.setAttribute("fechaNac", sdf.format(p.getFechaNacimiento())); // 🔹 fecha legible
                 el.setAttribute("telefono", p.getTelefono());
                 root.appendChild(el);
             }
@@ -200,9 +204,8 @@ public class XmlManager {
             e.printStackTrace();
         }
     }
-
     public static List<Paciente> cargarPacientes(String ruta) {
-        List<Paciente> pacientes = new ArrayList<>();
+    List<Paciente> pacientes = new ArrayList<>();
         try {
             File file = new File(ruta);
             if (!file.exists()) return pacientes;
@@ -211,11 +214,13 @@ public class XmlManager {
             Document doc = dBuilder.parse(file);
             NodeList lista = doc.getElementsByTagName("paciente");
 
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
             for (int i = 0; i < lista.getLength(); i++) {
                 Element p = (Element) lista.item(i);
                 String id = p.getAttribute("id");
                 String nombre = p.getAttribute("nombre");
-                Date fecha = new Date(Long.parseLong(p.getAttribute("fechaNac")));
+                Date fecha = sdf.parse(p.getAttribute("fechaNac")); // 🔹 parseo legible
                 String tel = p.getAttribute("telefono");
                 pacientes.add(new Paciente(id, nombre, fecha, tel));
             }
@@ -224,7 +229,6 @@ public class XmlManager {
         }
         return pacientes;
     }
-
     // ---------------- MEDICAMENTOS ----------------
     public static void guardarMedicamentos(List<Medicamento> medicamentos, String ruta) {
         try {
