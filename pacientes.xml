@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<pacientes>
+    <paciente id="PAC-001" nombre="Ana María López" telefono="76543210" fechaNacimiento="1990-05-20"/>
+    <paciente id="PAC-002" nombre="Carlos Pérez" telefono="71234567" fechaNacimiento="1985-09-15"/>
+    <paciente id="PAC-003" nombre="Lucía Rodríguez" telefono="78901234" fechaNacimiento="2000-12-01"/>
+    <paciente id="PAC-004" nombre="José Martínez" telefono="70001122" fechaNacimiento="1995-03-10"/>
+</pacientes>
