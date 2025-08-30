@@ -138,7 +138,7 @@ public class VentanaLogin extends JFrame {
             if (u instanceof Medico) {
                 new VentanaMenuMedico((Medico) u).setVisible(true);
             } else if (u instanceof Farmaceuta) {
-               
+               new VentanaMenuFarmaceuta((Farmaceuta) u).setVisible(true);
             } else {
                 new VentanaMenuAdmin(u).setVisible(true);
             }

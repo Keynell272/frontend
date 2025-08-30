@@ -1,7 +1,6 @@
 package proyecto.view;
 
-import java.awt.FlowLayout;
-import java.awt.Image;
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import proyecto.model.Medico;
@@ -9,7 +8,7 @@ import proyecto.model.Medico;
 public class VentanaMenuMedico extends JFrame {
     private Medico medicoLogueado;
 
-    // Componentes para la pestaña "Prescribir"
+    // Componentes
     private JTextField txtFechaRetiro;
     private JButton btnFecha, btnBuscarPaciente, btnAgregarMedicamento;
     private JTable tablaMedicamentos;
@@ -20,7 +19,6 @@ public class VentanaMenuMedico extends JFrame {
         init();
     }
 
-    // Método para cargar imágenes escaladas
     private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
         java.net.URL location = getClass().getResource(ruta);
         if (location == null) {
@@ -33,116 +31,144 @@ public class VentanaMenuMedico extends JFrame {
     }
 
     private void init() {
-        setTitle("Recetas - " + medicoLogueado.getId() + " (" + medicoLogueado.getNombre() + ")");
-        setSize(700, 450);
+        setTitle("Recetas - " + medicoLogueado.getId() + " (" + medicoLogueado.getRol() + ")");
+        setSize(800, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        // Icono de la ventana
         setIconImage(cargarIcono("/imagenes/medico logo.png", 32, 32).getImage());
 
-        // Panel principal con pestañas
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // ============================
-        // Panel "Prescribir"
-        // ============================
+        // Prescribir
+        JPanel panelPrescribir = crearPanelPrescribir();
+        tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), panelPrescribir);
+
+        // Dashboard
+        JPanel panelDashboard = new JPanel();
+        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), panelDashboard);
+
+        // Histórico
+        JPanel panelHistorico = new JPanel();
+        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), panelHistorico);
+
+        // Acerca de
+        JPanel panelAcerca = crearPanelAcercaDe();
+        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), panelAcerca);
+
+        add(tabbedPane);
+    }
+
+    private JPanel crearPanelPrescribir() {
         JPanel panelPrescribir = new JPanel();
         panelPrescribir.setLayout(null);
 
-        // Botón Buscar Paciente
+        // Sección Control
+        JLabel lblControl = new JLabel("Control");
+        lblControl.setFont(new Font("Arial", Font.BOLD, 12));
+        lblControl.setBounds(10, 5, 100, 20);
+        panelPrescribir.add(lblControl);
+
         btnBuscarPaciente = new JButton("Buscar Paciente");
-        btnBuscarPaciente.setBounds(10, 10, 150, 30);
+        btnBuscarPaciente.setBounds(10, 25, 150, 30);
         btnBuscarPaciente.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
         panelPrescribir.add(btnBuscarPaciente);
 
-        // Botón Agregar Medicamento
         btnAgregarMedicamento = new JButton("Agregar Medicamento");
-        btnAgregarMedicamento.setBounds(170, 10, 170, 30);
+        btnAgregarMedicamento.setBounds(170, 25, 180, 30);
         btnAgregarMedicamento.setIcon(cargarIcono("/imagenes/medicamentos logos.png", 20, 20));
         panelPrescribir.add(btnAgregarMedicamento);
 
-        // Panel Receta Médica
-        JPanel panelReceta = new JPanel();
-        panelReceta.setBorder(BorderFactory.createTitledBorder("Receta Médica"));
-        panelReceta.setLayout(null);
-        panelReceta.setBounds(10, 50, 660, 300);
-        panelPrescribir.add(panelReceta);
+        // Sección Receta Médica
+        JLabel lblReceta = new JLabel("Receta Médica");
+        lblReceta.setFont(new Font("Arial", Font.BOLD, 12));
+        lblReceta.setBounds(10, 70, 120, 20);
+        panelPrescribir.add(lblReceta);
 
-        // Campo Fecha de Retiro
         JLabel lblFechaRetiro = new JLabel("Fecha de Retiro");
-        lblFechaRetiro.setBounds(10, 25, 100, 25);
-        panelReceta.add(lblFechaRetiro);
+        lblFechaRetiro.setForeground(Color.RED);
+        lblFechaRetiro.setBounds(20, 95, 100, 25);
+        panelPrescribir.add(lblFechaRetiro);
 
-        txtFechaRetiro = new JTextField("18 de agosto de 2025");
-        txtFechaRetiro.setBounds(120, 25, 150, 25);
-        panelReceta.add(txtFechaRetiro);
+        txtFechaRetiro = new JTextField();
+        txtFechaRetiro.setBounds(130, 95, 150, 25);
+        panelPrescribir.add(txtFechaRetiro);
 
         btnFecha = new JButton("...");
-        btnFecha.setBounds(280, 25, 40, 25);
-        panelReceta.add(btnFecha);
+        btnFecha.setBounds(290, 95, 40, 25);
+        panelPrescribir.add(btnFecha);
 
-        // Tabla Medicamentos (vacía)
+        // Nombre del paciente (vacío al inicio)
+        JLabel lblPaciente = new JLabel("");
+        lblPaciente.setFont(new Font("Arial", Font.BOLD, 12));
+        lblPaciente.setForeground(new Color(0, 70, 140));
+        lblPaciente.setBounds(20, 130, 200, 25);
+        panelPrescribir.add(lblPaciente);
+
+        // Tabla medicamentos
         String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración"};
         DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int row, int col) {
                 return false;
             }
         };
         tablaMedicamentos = new JTable(modeloTabla);
-        JScrollPane scrollTabla = new JScrollPane(tablaMedicamentos);
-        scrollTabla.setBounds(10, 60, 640, 180);
-        panelReceta.add(scrollTabla);
+        JScrollPane scroll = new JScrollPane(tablaMedicamentos);
+        scroll.setBounds(20, 160, 740, 150);
+        panelPrescribir.add(scroll);
 
-        // Panel de botones Ajustar Prescripción
-        JPanel panelAjustar = new JPanel();
-        panelAjustar.setBorder(BorderFactory.createTitledBorder("Ajustar Prescripción"));
-        panelAjustar.setBounds(10, 250, 660, 80);
-        panelAjustar.setLayout(new FlowLayout(FlowLayout.LEFT));
+        // Sección Ajustar Prescripción
+        JLabel lblAjustar = new JLabel("Ajustar Prescripción");
+        lblAjustar.setFont(new Font("Arial", Font.BOLD, 12));
+        lblAjustar.setBounds(10, 320, 150, 20);
+        panelPrescribir.add(lblAjustar);
 
         btnGuardar = new JButton("Guardar");
         btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
-        panelAjustar.add(btnGuardar);
+        btnGuardar.setBounds(20, 345, 120, 30);
+        panelPrescribir.add(btnGuardar);
 
         btnLimpiar = new JButton("Limpiar");
         btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
-        panelAjustar.add(btnLimpiar);
+        btnLimpiar.setBounds(150, 345, 120, 30);
+        panelPrescribir.add(btnLimpiar);
 
         btnDescartar = new JButton("Descartar Medicamento");
         btnDescartar.setIcon(cargarIcono("/imagenes/Borrar logo.png", 20, 20));
-        btnDescartar.setEnabled(false);
-        panelAjustar.add(btnDescartar);
+        btnDescartar.setEnabled(true); // habilitado
+        btnDescartar.setBounds(280, 345, 200, 30);
+        panelPrescribir.add(btnDescartar);
 
         btnDetalles = new JButton("Detalles");
         btnDetalles.setIcon(cargarIcono("/imagenes/Check logo.png", 20, 20));
-        btnDetalles.setEnabled(false);
-        panelAjustar.add(btnDetalles);
+        btnDetalles.setEnabled(true); // habilitado
+        btnDetalles.setBounds(490, 345, 120, 30);
+        panelPrescribir.add(btnDetalles);
 
-        panelReceta.add(panelAjustar);
+        return panelPrescribir;
+    }
 
-        // Agregar pestaña con ícono
-        tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), panelPrescribir);
+    private JPanel crearPanelAcercaDe() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(230, 233, 237));
 
-        // ============================
-        // Panel "Dashboard"
-        // ============================
-        JPanel panelDashboard = new JPanel();
-        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), panelDashboard);
+        JLabel lblTitulo = new JLabel("Prescripcion y Despacho de Recetas", SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
+        lblTitulo.setForeground(Color.BLUE);
+        panel.add(lblTitulo, BorderLayout.NORTH);
 
-        // ============================
-        // Panel "Histórico"
-        // ============================
-        JPanel panelHistorico = new JPanel();
-        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), panelHistorico);
+        JLabel lblImagen = new JLabel();
+        lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
+        lblImagen.setIcon(cargarIcono("/imagenes/hospital imagen principal.jpg", 700, 300));
+        panel.add(lblImagen, BorderLayout.CENTER);
 
-        // ============================
-        // Panel "Acerca de..."
-        // ============================
-        JPanel panelAcercaDe = new JPanel();
-        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), panelAcercaDe);
+        JPanel subPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        subPanel.setBackground(new Color(230, 233, 237));
+        JLabel lblInfo = new JLabel("Total Soft Inc.   @totalsoft   Tel. 67197691");
+        lblInfo.setFont(new Font("Arial", Font.PLAIN, 14));
+        subPanel.add(lblInfo);
+        panel.add(subPanel, BorderLayout.SOUTH);
 
-        // Agregar todo al JFrame
-        add(tabbedPane);
+        return panel;
     }
 }
