@@ -1,7 +1,6 @@
 package proyecto.view;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -15,14 +14,12 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import proyecto.control.ControlLogin;
-import proyecto.model.Farmaceuta;
-import proyecto.model.Medico;
 import proyecto.model.Usuario;
 
 public class VentanaLogin extends JFrame {
@@ -38,30 +35,29 @@ public class VentanaLogin extends JFrame {
 
     // Método para escalar imágenes
     private ImageIcon escalarIcono(URL url, int ancho, int alto) {
+        if (url == null) return null;
         ImageIcon iconoOriginal = new ImageIcon(url);
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
 
-    private ImageIcon escalarIcono2(String ruta, int ancho, int alto) {
-        ImageIcon iconoOriginal = new ImageIcon(getClass().getResource(ruta));
+    private ImageIcon escalarIcono2(String path, int ancho, int alto) {
+        ImageIcon iconoOriginal = new ImageIcon(getClass().getResource(path));
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
 
     private void init() {
-        setTitle("Recetas");
-        setSize(350, 250);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Login");
+        setSize(400, 300);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(false);
+        setIconImage(escalarIcono(getClass().getResource("/imagenes/Recetas logo.png"), 32, 32).getImage());
 
-        // Panel central
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(230, 233, 237));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(5,5,5,5);
 
         // Icono superior
         JLabel lblIcono2 = new JLabel();
@@ -100,6 +96,7 @@ public class VentanaLogin extends JFrame {
 
         btnEntrar.addActionListener(this::loginAction);
         btnBorrar.addActionListener(e -> limpiarCampos());
+        btnCambiarClave.addActionListener(this::cambiarClaveAction);
 
         panelBotones.add(btnEntrar);
         panelBotones.add(btnBorrar);
@@ -110,22 +107,20 @@ public class VentanaLogin extends JFrame {
 
         add(panel, BorderLayout.CENTER);
 
-        // Acción del botón Cambiar Clave
-        btnCambiarClave.addActionListener(e -> {
-            String id = txtId.getText().trim();
-            String clave = new String(txtClave.getPassword());
-            Usuario u = controlLogin.login(id, clave);
-
-            if (u != null) {
-                // Asumiendo que VentanaCambiarClave acepta Usuario y ControlLogin
-                
-            } else {
-                JOptionPane.showMessageDialog(this, "Debe iniciar sesión para cambiar la clave");
-            }
-        });
     }
 
-    // Acción de login con ventanas según tipo de usuario
+    private void cambiarClaveAction(ActionEvent e) {
+        String id = txtId.getText().trim();
+        String clave = new String(txtClave.getPassword());
+        Usuario u = controlLogin.login(id, clave);
+
+        if (u != null) {
+            controlLogin.openChangePassword(this, u);
+        } else {
+            JOptionPane.showMessageDialog(this, "Debe iniciar sesión para cambiar la clave");
+        }
+    }
+
     private void loginAction(ActionEvent e) {
         String id = txtId.getText().trim();
         String clave = new String(txtClave.getPassword());
@@ -134,17 +129,7 @@ public class VentanaLogin extends JFrame {
 
         if (u != null) {
             JOptionPane.showMessageDialog(this, "Bienvenido " + u.getId() + " (" + u.getRol() + ")");
-
-            if (u instanceof Medico) {
-                new VentanaMenuMedico((Medico) u).setVisible(true);
-            } else if (u instanceof Farmaceuta) {
-               new VentanaMenuFarmaceuta((Farmaceuta) u).setVisible(true);
-            } else {
-                new VentanaMenuAdmin(u).setVisible(true);
-            }
-
-            dispose();
-
+            controlLogin.postLogin(this, u);
         } else {
             JOptionPane.showMessageDialog(this, "Usuario o clave incorrecta");
         }
