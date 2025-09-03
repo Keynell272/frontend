@@ -10,8 +10,9 @@ public class ControlReceta {
         this.recetas = recetas;
     }
 
-    public Receta crearReceta(String id, Date fecha, Date fechaRetiro) {
-        Receta receta = new Receta(id, fecha, fechaRetiro, "confeccionada");
+    public Receta crearReceta(String id, Date fechaConfeccion, Date fechaRetiro, Paciente paciente) {
+        Receta receta = new Receta(id, fechaConfeccion, fechaRetiro, paciente);
+        receta.setEstado("confeccionada");
         recetas.add(receta);
         return receta;
     }
@@ -24,8 +25,7 @@ public class ControlReceta {
     public List<Receta> buscarPorPaciente(String pacienteId) {
         List<Receta> result = new ArrayList<>();
         for (Receta r : recetas) {
-            // Aquí luego se podría asociar Paciente a Receta
-            if (r.getId().contains(pacienteId)) { 
+            if (r.getPaciente() != null && r.getPaciente().getId().equals(pacienteId)) {
                 result.add(r);
             }
         }

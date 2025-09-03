@@ -5,19 +5,24 @@ import java.util.Date;
 import java.util.List;
 
 public class Receta {
-    private String id;
-    private Date fecha;
+    private String id; 
+    private Date fechaConfeccion;
     private Date fechaRetiro;
+    private Date fechaProceso;
+    private Date fechaLista;
+    private Date fechaEntrega;
     private String estado; // "confeccionada", "proceso", "lista", "entregada"
     private List<DetalleReceta> detalles;
+    private Paciente paciente;
 
-    public Receta(String id, Date fecha, Date fechaRetiro, String estado) {
+    public Receta(String id, Date fechaConfeccion, Date fechaRetiro, Paciente paciente) {
         this.id = id;
-        this.fecha = fecha;
+        this.fechaConfeccion = fechaConfeccion;
         this.fechaRetiro = fechaRetiro;
-        this.estado = estado;
+        this.paciente = paciente;
         this.detalles = new ArrayList<>();
     }
+
 
     public void agregarDetalle(DetalleReceta detalle) {
         detalles.add(detalle);
@@ -31,8 +36,8 @@ public class Receta {
     public String getId() {
         return id;
     }
-    public Date getFecha() {
-        return fecha;
+    public Date getFechaConfeccion() {
+        return fechaConfeccion;
     }
     public Date getFechaRetiro() {
         return fechaRetiro;
@@ -43,13 +48,26 @@ public class Receta {
     public List<DetalleReceta> getDetalles() {
         return detalles;
     }
+    public Paciente getPaciente() {
+        return paciente;
+    }
+    public Date getFechaProceso() {
+        return fechaProceso;
+    }
+    public Date getFechaLista() {
+        return fechaLista;
+    }
+    public Date getFechaEntrega() {
+        return fechaEntrega;
+    }
+
     
     // Setters
     public void setId(String id) {
         this.id = id;
     }   
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
+    public void setFechaConfeccion(Date fecha) {
+        this.fechaConfeccion = fecha;
     }
     public void setFechaRetiro(Date fechaRetiro) {
         this.fechaRetiro = fechaRetiro;
@@ -60,5 +78,16 @@ public class Receta {
     public void setDetalles(List<DetalleReceta> detalles) {
         this.detalles = detalles;
     }
-
+    public void setPaciente(Paciente paciente) {
+        this.paciente = paciente;
+    }
+    public void setFechaProceso(Date fechaProceso) {
+        this.fechaProceso = fechaProceso;
+    }
+    public void setFechaLista(Date fechaLista) {
+        this.fechaLista = fechaLista;
+    }
+    public void setFechaEntrega(Date fechaEntrega) {
+        this.fechaEntrega = fechaEntrega;
+    }
 }

@@ -1,59 +1,80 @@
 package proyecto.view;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import java.util.ArrayList;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import proyecto.model.Medicamento;
-import proyecto.model.Medico;
-import proyecto.model.Paciente;
+import org.w3c.dom.*;
+import java.util.Date;
+import proyecto.model.*;
 
 public class VentanaMenuMedico extends JFrame {
     private Medico medicoLogueado;
 
     private JTextField txtFechaRetiro;
-    private JButton btnFecha, btnBuscarPaciente, btnAgregarMedicamento;
+    private JButton btnBuscarPaciente, btnAgregarMedicamento;
     private JTable tablaMedicamentos;
     private JButton btnGuardar, btnLimpiar, btnDescartar, btnDetalles;
-    private JLabel lblPaciente; // <-- Necesario para mostrar el paciente seleccionado
-    private Paciente pacienteSeleccionado; // <-- Guardar el objeto seleccionado
+    private JLabel lblPaciente;
+    private Paciente pacienteSeleccionado;
 
     public VentanaMenuMedico(Medico medicoLogueado) {
         this.medicoLogueado = medicoLogueado;
+        SDF_DMY.setLenient(false);
         init();
     }
 
+    // ------------------ INIT ------------------
+    private void init() {
+        setTitle("Recetas - " + medicoLogueado.getId() + " (" + medicoLogueado.getRol() + ")");
+        setSize(800, 500);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setIconImage(cargarIcono("/imagenes/medico logo.png", 32, 32).getImage());
+
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelPrescribir());
+        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), new JPanel());
+        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), new JPanel());
+        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
+        add(tabbedPane);
+    }
+
+    private final SimpleDateFormat SDF_DMY = new SimpleDateFormat("dd/MM/yyyy");
+
+    private Date parseFechaFlexible(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        try { return SDF_DMY.parse(t); } catch (Exception ignore) {}
+        return null;
+    }
+    private Date soloFecha(Date d) throws Exception {
+        return SDF_DMY.parse(SDF_DMY.format(d));
+    }
+    private String generarSiguienteIdReceta(Document doc) {
+        NodeList nodes = doc.getElementsByTagName("receta");
+        int max = 0;
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element r = (Element) nodes.item(i);
+            String id = r.getAttribute("id");
+            if (id != null && id.startsWith("R")) {
+                try {
+                    int n = Integer.parseInt(id.substring(1));
+                    if (n > max) max = n;
+                } catch (Exception ignored) {}
+            }
+        }
+        return String.format("R%03d", max + 1);
+    }
+
+    // ------------------ UTILS ------------------
     private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
         java.net.URL location = getClass().getResource(ruta);
         if (location == null) {
@@ -65,140 +86,107 @@ public class VentanaMenuMedico extends JFrame {
         return new ImageIcon(imagen);
     }
 
-    private void init() {
-        setTitle("Recetas - " + medicoLogueado.getId() + " (" + medicoLogueado.getRol() + ")");
-        setSize(800, 500);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setIconImage(cargarIcono("/imagenes/medico logo.png", 32, 32).getImage());
+    // ------------------ PANEL PRESCRIBIR ------------------
+    private JPanel crearPanelPrescribir() {
+        JPanel panelPrescribir = new JPanel(null);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
+        // Control
+        JLabel lblControl = new JLabel("Control");
+        lblControl.setFont(new Font("Arial", Font.BOLD, 12));
+        lblControl.setBounds(10, 5, 100, 20);
+        panelPrescribir.add(lblControl);
 
-        JPanel panelPrescribir = crearPanelPrescribir();
-        tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), panelPrescribir);
+        btnBuscarPaciente = new JButton("Buscar Paciente", cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
+        btnBuscarPaciente.setBounds(10, 25, 150, 30);
+        btnBuscarPaciente.addActionListener(e -> mostrarVentanaBuscarPaciente());
+        panelPrescribir.add(btnBuscarPaciente);
 
-        JPanel panelDashboard = new JPanel();
-        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), panelDashboard);
+        btnAgregarMedicamento = new JButton("Agregar Medicamento", cargarIcono("/imagenes/medicamentos logos.png", 20, 20));
+        btnAgregarMedicamento.setBounds(170, 25, 180, 30);
+        btnAgregarMedicamento.addActionListener(e -> mostrarVentanaAgregarMedicamento());
+        panelPrescribir.add(btnAgregarMedicamento);
 
-        JPanel panelHistorico = new JPanel();
-        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), panelHistorico);
+        // Receta
+        JLabel lblReceta = new JLabel("Receta Médica");
+        lblReceta.setFont(new Font("Arial", Font.BOLD, 12));
+        lblReceta.setBounds(10, 70, 120, 20);
+        panelPrescribir.add(lblReceta);
 
-        JPanel panelAcerca = crearPanelAcercaDe();
-        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), panelAcerca);
+        JLabel lblFechaRetiro = new JLabel("Fecha de Retiro");
+        lblFechaRetiro.setForeground(Color.RED);
+        lblFechaRetiro.setBounds(20, 95, 100, 25);
+        panelPrescribir.add(lblFechaRetiro);
 
-        add(tabbedPane);
+        txtFechaRetiro = new JTextField();
+        txtFechaRetiro.setBounds(130, 95, 150, 25);
+        panelPrescribir.add(txtFechaRetiro);
+
+        JButton btnCalendario = new JButton("📅");
+        btnCalendario.setBounds(300, 95, 50, 25);
+        panelPrescribir.add(btnCalendario);
+        new DatePickerConNavegacion(txtFechaRetiro, btnCalendario);
+
+        lblPaciente = new JLabel("");
+        lblPaciente.setFont(new Font("Arial", Font.BOLD, 12));
+        lblPaciente.setForeground(new Color(0, 70, 140));
+        lblPaciente.setBounds(20, 130, 300, 25);
+        panelPrescribir.add(lblPaciente);
+
+        // Tabla
+        String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración"};
+        DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                return col == 2 || col == 3 || col == 4;
+            }
+        };
+        tablaMedicamentos = new JTable(modeloTabla);
+        JScrollPane scroll = new JScrollPane(tablaMedicamentos);
+        scroll.setBounds(20, 160, 740, 150);
+        panelPrescribir.add(scroll);
+
+        // Ajustar Prescripción
+        JLabel lblAjustar = new JLabel("Ajustar Prescripción");
+        lblAjustar.setFont(new Font("Arial", Font.BOLD, 12));
+        lblAjustar.setBounds(10, 320, 150, 20);
+        panelPrescribir.add(lblAjustar);
+
+        btnGuardar = new JButton("Guardar", cargarIcono("/imagenes/Guardar logo.png", 20, 20));
+        btnGuardar.setBounds(20, 345, 120, 30);
+        btnGuardar.addActionListener(e -> guardarRecetaEnXML("recetas.xml"));
+        panelPrescribir.add(btnGuardar);
+
+        btnLimpiar = new JButton("Limpiar", cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
+        btnLimpiar.setBounds(150, 345, 120, 30);
+        btnLimpiar.addActionListener(e -> {
+            tablaMedicamentos.clearSelection();
+            txtFechaRetiro.setText("");
+            lblPaciente.setText("");
+        });
+        panelPrescribir.add(btnLimpiar);
+
+        btnDescartar = new JButton("Descartar Medicamento", cargarIcono("/imagenes/Borrar logo.png", 20, 20));
+        btnDescartar.setBounds(280, 345, 200, 30);
+        btnDescartar.addActionListener(e -> {
+            int[] filas = tablaMedicamentos.getSelectedRows();
+            if (filas.length == 0) {
+                JOptionPane.showMessageDialog(this, "No hay medicamentos seleccionados para descartar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            DefaultTableModel modelo = (DefaultTableModel) tablaMedicamentos.getModel();
+            for (int i = filas.length - 1; i >= 0; i--) modelo.removeRow(filas[i]);
+        });
+        panelPrescribir.add(btnDescartar);
+
+        btnDetalles = new JButton("Detalles", cargarIcono("/imagenes/Check logo.png", 20, 20));
+        btnDetalles.setBounds(490, 345, 120, 30);
+        btnDetalles.addActionListener(e -> mostrarVentanaDetalles());
+        panelPrescribir.add(btnDetalles);
+
+        return panelPrescribir;
     }
 
-private JPanel crearPanelPrescribir() {
-    JPanel panelPrescribir = new JPanel();
-    panelPrescribir.setLayout(null);
-
-    JLabel lblControl = new JLabel("Control");
-    lblControl.setFont(new Font("Arial", Font.BOLD, 12));
-    lblControl.setBounds(10, 5, 100, 20);
-    panelPrescribir.add(lblControl);
-
-    btnBuscarPaciente = new JButton("Buscar Paciente");
-    btnBuscarPaciente.setBounds(10, 25, 150, 30);
-    btnBuscarPaciente.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
-    panelPrescribir.add(btnBuscarPaciente);
-    btnBuscarPaciente.addActionListener(e -> mostrarVentanaBuscarPaciente());
-
-    btnAgregarMedicamento = new JButton("Agregar Medicamento");
-    btnAgregarMedicamento.addActionListener(e -> mostrarVentanaAgregarMedicamento());
-    btnAgregarMedicamento.setBounds(170, 25, 180, 30);
-    btnAgregarMedicamento.setIcon(cargarIcono("/imagenes/medicamentos logos.png", 20, 20));
-    panelPrescribir.add(btnAgregarMedicamento);
-
-    JLabel lblReceta = new JLabel("Receta Médica");
-    lblReceta.setFont(new Font("Arial", Font.BOLD, 12));
-    lblReceta.setBounds(10, 70, 120, 20);
-    panelPrescribir.add(lblReceta);
-
-    JLabel lblFechaRetiro = new JLabel("Fecha de Retiro");
-    lblFechaRetiro.setForeground(Color.RED);
-    lblFechaRetiro.setBounds(20, 95, 100, 25);
-    panelPrescribir.add(lblFechaRetiro);
-
-    txtFechaRetiro = new JTextField();
-    txtFechaRetiro.setBounds(130, 95, 150, 25);
-    panelPrescribir.add(txtFechaRetiro);
-
-    btnFecha = new JButton("...");
-    btnFecha.setBounds(290, 95, 40, 25);
-    panelPrescribir.add(btnFecha);
-
-    lblPaciente = new JLabel("");
-    lblPaciente.setFont(new Font("Arial", Font.BOLD, 12));
-    lblPaciente.setForeground(new Color(0, 70, 140));
-    lblPaciente.setBounds(20, 130, 300, 25);
-    panelPrescribir.add(lblPaciente);
-
-    String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración"};
-    DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
-    @Override
-    public boolean isCellEditable(int row, int col) {
-        // Permitir edición solo en columnas Cantidad(2), Indicaciones(3) y Duración(4)
-        return col == 2 || col == 3 || col == 4;
-    }
-
-    };
-    tablaMedicamentos = new JTable(modeloTabla);
-    JScrollPane scroll = new JScrollPane(tablaMedicamentos);
-    scroll.setBounds(20, 160, 740, 150);
-    panelPrescribir.add(scroll);
-
-    JLabel lblAjustar = new JLabel("Ajustar Prescripción");
-    lblAjustar.setFont(new Font("Arial", Font.BOLD, 12));
-    lblAjustar.setBounds(10, 320, 150, 20);
-    panelPrescribir.add(lblAjustar);
-
-    btnGuardar = new JButton("Guardar");
-    btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
-    btnGuardar.setBounds(20, 345, 120, 30);
-    btnGuardar.addActionListener(e -> guardarRecetaEnXML("recetas.xml"));
-    panelPrescribir.add(btnGuardar);
-
-    btnLimpiar = new JButton("Limpiar");
-    btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
-    btnLimpiar.setBounds(150, 345, 120, 30);
-    panelPrescribir.add(btnLimpiar);
-
-    btnLimpiar.addActionListener(e -> {
-        tablaMedicamentos.clearSelection();
-        txtFechaRetiro.setText("");
-        lblPaciente.setText("");
-    });
-
-    btnDescartar = new JButton("Descartar Medicamento");
-    btnDescartar.setIcon(cargarIcono("/imagenes/Borrar logo.png", 20, 20));
-    btnDescartar.setBounds(280, 345, 200, 30);
-    panelPrescribir.add(btnDescartar);
-
-    btnDescartar.addActionListener(e -> {
-        int[] filasSeleccionadas = tablaMedicamentos.getSelectedRows();
-        if (filasSeleccionadas.length == 0) {
-            JOptionPane.showMessageDialog(this, "No hay medicamentos seleccionados para descartar.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        DefaultTableModel modelo = (DefaultTableModel) tablaMedicamentos.getModel();
-        // Eliminar de abajo hacia arriba para no romper índices
-        for (int i = filasSeleccionadas.length - 1; i >= 0; i--) {
-            modelo.removeRow(filasSeleccionadas[i]);
-        }
-        // NO limpiar fecha ni paciente aquí
-    });
-
-    btnDetalles = new JButton("Detalles");
-    btnDetalles.setIcon(cargarIcono("/imagenes/Check logo.png", 20, 20));
-    btnDetalles.setBounds(490, 345, 120, 30);
-    btnDetalles.addActionListener(e -> mostrarVentanaDetalles());
-    panelPrescribir.add(btnDetalles);
-
-    return panelPrescribir;
-}
-
-
+    // ------------------ PANEL ACERCA DE ------------------
     private JPanel crearPanelAcercaDe() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(230, 233, 237));
@@ -223,8 +211,7 @@ private JPanel crearPanelPrescribir() {
         return panel;
     }
 
-    // ------------------------------ MÉTODO BUSCAR PACIENTE ------------------------------
-
+    // ------------------ PACIENTES ------------------
     private void mostrarVentanaBuscarPaciente() {
         List<Paciente> pacientes = cargarPacientesDesdeXML("pacientes.xml");
 
@@ -233,7 +220,6 @@ private JPanel crearPanelPrescribir() {
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // Panel de filtro con combo para elegir campo (nombre o id) y campo texto
         JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JComboBox<String> comboFiltro = new JComboBox<>(new String[]{"nombre", "id"});
         JTextField txtFiltro = new JTextField(20);
@@ -244,14 +230,10 @@ private JPanel crearPanelPrescribir() {
 
         String[] columnas = {"Id", "Nombre", "Telefono", "Fec. Nac."};
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         JTable tabla = new JTable(modelo);
-        JScrollPane scroll = new JScrollPane(tabla);
-        dialog.add(scroll, BorderLayout.CENTER);
+        dialog.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
         JPanel panelBotones = new JPanel();
         JButton btnOK = new JButton("OK");
@@ -260,325 +242,301 @@ private JPanel crearPanelPrescribir() {
         panelBotones.add(btnCancel);
         dialog.add(panelBotones, BorderLayout.SOUTH);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-        // Método para cargar lista en la tabla
         Runnable cargarTabla = () -> {
             modelo.setRowCount(0);
             String criterio = comboFiltro.getSelectedItem().toString();
             String filtroTexto = txtFiltro.getText().trim().toLowerCase();
-
             for (Paciente p : pacientes) {
                 String valor = criterio.equals("nombre") ? p.getNombre() : p.getId();
                 if (valor.toLowerCase().contains(filtroTexto)) {
-                    modelo.addRow(new String[]{
-                            p.getId(),
-                            p.getNombre(),
-                            p.getTelefono(),
-                            sdf.format(p.getFechaNacimiento())
-                    });
+                    modelo.addRow(new String[]{p.getId(), p.getNombre(), p.getTelefono(), sdf.format(p.getFechaNacimiento())});
                 }
             }
         };
-
-        // Carga inicial completa
         cargarTabla.run();
 
-        // Actualiza tabla al escribir en filtro o cambiar criterio
         txtFiltro.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                cargarTabla.run();
-            }
+            @Override public void keyReleased(KeyEvent e) { cargarTabla.run(); }
         });
-
         comboFiltro.addActionListener(e -> cargarTabla.run());
 
         btnOK.addActionListener(e -> {
             int fila = tabla.getSelectedRow();
             if (fila != -1) {
-                String idSeleccionado = (String) modelo.getValueAt(fila, 0);
-                pacienteSeleccionado = pacientes.stream()
-                        .filter(p -> p.getId().equals(idSeleccionado))
-                        .findFirst()
-                        .orElse(null);
-
-                if (pacienteSeleccionado != null) {
-                    lblPaciente.setText("Paciente: " + pacienteSeleccionado.getNombre());
-                }
+                String idSel = (String) modelo.getValueAt(fila, 0);
+                pacienteSeleccionado = pacientes.stream().filter(p -> p.getId().equals(idSel)).findFirst().orElse(null);
+                if (pacienteSeleccionado != null) lblPaciente.setText("Paciente: " + pacienteSeleccionado.getNombre());
                 dialog.dispose();
-            } else {
-                JOptionPane.showMessageDialog(dialog, "Seleccione un paciente.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            }
+            } else JOptionPane.showMessageDialog(dialog, "Seleccione un paciente.", "Aviso", JOptionPane.WARNING_MESSAGE);
         });
 
         btnCancel.addActionListener(e -> dialog.dispose());
-
         dialog.setVisible(true);
     }
 
-private List<Paciente> cargarPacientesDesdeXML(String rutaArchivo) {
-    List<Paciente> lista = new ArrayList<>();
-    try {
-        File archivo = new File(rutaArchivo);
-        if (!archivo.exists()) {
-            JOptionPane.showMessageDialog(this, "No se encontró el archivo pacientes.xml", "Archivo no encontrado", JOptionPane.ERROR_MESSAGE);
-            return lista;
-        }
+    private List<Paciente> cargarPacientesDesdeXML(String rutaArchivo) {
+        List<Paciente> lista = new ArrayList<>();
+        try {
+            File archivo = new File(rutaArchivo);
+            if (!archivo.exists()) return lista;
 
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(archivo);
-        doc.getDocumentElement().normalize();
+            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = dBuilder.parse(archivo);
+            NodeList nList = doc.getElementsByTagName("paciente");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-        NodeList nList = doc.getElementsByTagName("paciente");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-        for (int i = 0; i < nList.getLength(); i++) {
-            Element elem = (Element) nList.item(i);
-
-            String id = elem.getAttribute("id");
-            String nombre = elem.getAttribute("nombre");
-            String telefono = elem.getAttribute("telefono");
-            String fechaNacStr = elem.getAttribute("fechaNac");
-
-
-            Date fechaNacimiento = sdf.parse(fechaNacStr);
-            lista.add(new Paciente(id, nombre, fechaNacimiento, telefono));
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error al cargar pacientes.xml", "Error", JOptionPane.ERROR_MESSAGE);
+            for (int i = 0; i < nList.getLength(); i++) {
+                Element elem = (Element) nList.item(i);
+                lista.add(new Paciente(
+                        elem.getAttribute("id"),
+                        elem.getAttribute("nombre"),
+                        sdf.parse(elem.getAttribute("fechaNac")),
+                        elem.getAttribute("telefono")
+                ));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return lista;
     }
-    return lista;
-}
 
-private List<Medicamento> cargarMedicamentosDesdeXML(String rutaArchivo) {
-    List<Medicamento> lista = new ArrayList<>();
-    try {
-        File archivo = new File(rutaArchivo);
-        if (!archivo.exists()) {
-            JOptionPane.showMessageDialog(this, "No se encontró el archivo medicamentos.xml", "Archivo no encontrado", JOptionPane.ERROR_MESSAGE);
-            return lista;
-        }
+    // ------------------ MEDICAMENTOS ------------------
+    private void mostrarVentanaAgregarMedicamento() {
+        List<Medicamento> medicamentos = cargarMedicamentosDesdeXML("medicamentos.xml");
 
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(archivo);
-        doc.getDocumentElement().normalize();
+        JDialog dialog = new JDialog(this, "Agregar Medicamento", true);
+        dialog.setSize(500, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
 
-        NodeList nList = doc.getElementsByTagName("medicamento");
+        JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JComboBox<String> comboFiltro = new JComboBox<>(new String[]{"nombre", "codigo"});
+        JTextField txtFiltro = new JTextField(20);
+        panelFiltro.add(new JLabel("Filtrar por:"));
+        panelFiltro.add(comboFiltro);
+        panelFiltro.add(txtFiltro);
+        dialog.add(panelFiltro, BorderLayout.NORTH);
 
-        for (int i = 0; i < nList.getLength(); i++) {
-            Element elem = (Element) nList.item(i);
+        String[] columnas = {"Código", "Nombre", "Presentación"};
+        DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        JTable tabla = new JTable(modelo);
+        dialog.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-            String codigo = elem.getAttribute("codigo");
-            String nombre = elem.getAttribute("nombre");
-            String presentacion = elem.getAttribute("presentacion");
+        JPanel panelBotones = new JPanel();
+        JButton btnOK = new JButton("Agregar");
+        JButton btnCancel = new JButton("Cancelar");
+        panelBotones.add(btnOK); panelBotones.add(btnCancel);
+        dialog.add(panelBotones, BorderLayout.SOUTH);
 
-            lista.add(new Medicamento(codigo, nombre, presentacion));
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error al cargar medicamentos.xml", "Error", JOptionPane.ERROR_MESSAGE);
+        Runnable cargarTabla = () -> {
+            modelo.setRowCount(0);
+            String criterio = comboFiltro.getSelectedItem().toString();
+            String filtroTexto = txtFiltro.getText().trim().toLowerCase();
+            for (Medicamento m : medicamentos) {
+                String valor = criterio.equals("nombre") ? m.getNombre() : m.getCodigo();
+                if (valor.toLowerCase().contains(filtroTexto)) {
+                    modelo.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
+                }
+            }
+        };
+        cargarTabla.run();
+
+        txtFiltro.addKeyListener(new KeyAdapter() { @Override public void keyReleased(KeyEvent e) { cargarTabla.run(); }});
+        comboFiltro.addActionListener(e -> cargarTabla.run());
+
+        btnOK.addActionListener(e -> {
+            int fila = tabla.getSelectedRow();
+            if (fila != -1) {
+                DefaultTableModel modeloTabla = (DefaultTableModel) tablaMedicamentos.getModel();
+                modeloTabla.addRow(new Object[]{
+                        modelo.getValueAt(fila, 1), modelo.getValueAt(fila, 2), "", "", ""
+                });
+                dialog.dispose();
+            } else JOptionPane.showMessageDialog(dialog, "Seleccione un medicamento.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        });
+
+        btnCancel.addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
     }
-    return lista;
-}
 
+    private List<Medicamento> cargarMedicamentosDesdeXML(String rutaArchivo) {
+        List<Medicamento> lista = new ArrayList<>();
+        try {
+            File archivo = new File(rutaArchivo);
+            if (!archivo.exists()) return lista;
 
-private void mostrarVentanaAgregarMedicamento() {
-    List<Medicamento> medicamentos = cargarMedicamentosDesdeXML("medicamentos.xml");
+            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = dBuilder.parse(archivo);
+            NodeList nList = doc.getElementsByTagName("medicamento");
 
-    JDialog dialog = new JDialog(this, "Agregar Medicamento", true);
-    dialog.setSize(500, 300);
-    dialog.setLocationRelativeTo(this);
-    dialog.setLayout(new BorderLayout());
+            for (int i = 0; i < nList.getLength(); i++) {
+                Element elem = (Element) nList.item(i);
+                lista.add(new Medicamento(
+                        elem.getAttribute("codigo"),
+                        elem.getAttribute("nombre"),
+                        elem.getAttribute("presentacion")
+                ));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return lista;
+    }
 
-    JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    JComboBox<String> comboFiltro = new JComboBox<>(new String[]{"nombre", "codigo"});
-    JTextField txtFiltro = new JTextField(20);
-    panelFiltro.add(new JLabel("Filtrar por:"));
-    panelFiltro.add(comboFiltro);
-    panelFiltro.add(txtFiltro);
-    dialog.add(panelFiltro, BorderLayout.NORTH);
-
-    String[] columnas = {"Código", "Nombre", "Presentación"};
-    DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return false;
+    private void guardarRecetaEnXML(String rutaArchivo) {
+        if (pacienteSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un paciente.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-    };
-    JTable tabla = new JTable(modelo);
-    JScrollPane scroll = new JScrollPane(tabla);
-    dialog.add(scroll, BorderLayout.CENTER);
-
-    JPanel panelBotones = new JPanel();
-    JButton btnOK = new JButton("Agregar");
-    JButton btnCancel = new JButton("Cancelar");
-    panelBotones.add(btnOK);
-    panelBotones.add(btnCancel);
-    dialog.add(panelBotones, BorderLayout.SOUTH);
-
-    Runnable cargarTabla = () -> {
-        modelo.setRowCount(0);
-        String criterio = comboFiltro.getSelectedItem().toString();
-        String filtroTexto = txtFiltro.getText().trim().toLowerCase();
-
-        for (Medicamento m : medicamentos) {
-            String valor = criterio.equals("nombre") ? m.getNombre() : m.getCodigo();
-            if (valor.toLowerCase().contains(filtroTexto)) {
-                modelo.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
+        if (tablaMedicamentos.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Debe agregar al menos un medicamento.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        // validar que todos los campos de cada medicamento estén completos
+        for (int i = 0; i < tablaMedicamentos.getRowCount(); i++) {
+            for (int j = 0; j < tablaMedicamentos.getColumnCount(); j++) {
+                Object v = tablaMedicamentos.getValueAt(i, j);
+                if (v == null || v.toString().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this,
+                            "Debe llenar todos los campos de los medicamentos (fila " + (i + 1) + ").",
+                            "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
             }
         }
-    };
-
-    cargarTabla.run();
-
-    txtFiltro.addKeyListener(new KeyAdapter() {
-        @Override
-        public void keyReleased(KeyEvent e) {
-            cargarTabla.run();
+        // fecha de retiro obligatoria y válida
+        Date fechaRetiro = parseFechaFlexible(txtFechaRetiro.getText());
+        if (fechaRetiro == null) {
+            JOptionPane.showMessageDialog(this, "Formato de fecha inválido (use dd/MM/yyyy).",
+                    "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-    });
 
-    comboFiltro.addActionListener(e -> cargarTabla.run());
+        try {
+            Date fechaConfeccion = soloFecha(new Date());
+            fechaRetiro = soloFecha(fechaRetiro);
 
-    btnOK.addActionListener(e -> {
-        int fila = tabla.getSelectedRow();
-        if (fila != -1) {
-            String nombre = (String) modelo.getValueAt(fila, 1);
-            String presentacion = (String) modelo.getValueAt(fila, 2);
+            // la fecha de retiro no puede ser anterior a la fecha de confección
+            if (fechaRetiro.before(fechaConfeccion)) {
+                JOptionPane.showMessageDialog(this,
+                        "La fecha de retiro no puede ser anterior a la fecha de confección (" +
+                        SDF_DMY.format(fechaConfeccion) + ").",
+                        "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-            DefaultTableModel modeloTabla = (DefaultTableModel) tablaMedicamentos.getModel();
-            modeloTabla.addRow(new Object[]{nombre, presentacion, "", "", ""});
-            dialog.dispose();
-        } else {
-            JOptionPane.showMessageDialog(dialog, "Seleccione un medicamento.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc;
+            File archivo = new File(rutaArchivo);
+            Element raiz;
+
+            if (archivo.exists()) {
+                doc = builder.parse(archivo);
+                raiz = doc.getDocumentElement();
+            } else {
+                doc = builder.newDocument();
+                raiz = doc.createElement("recetas");
+                doc.appendChild(raiz);
+            }
+
+            String nuevoId = generarSiguienteIdReceta(doc);
+
+            Element recetaElem = doc.createElement("receta");
+            recetaElem.setAttribute("id", nuevoId);
+
+            // Estado inicial
+            Element estadoElem = doc.createElement("estado");
+            estadoElem.setTextContent("confeccionada");
+            recetaElem.appendChild(estadoElem);
+
+            // Fechas
+            Element fechaConfElem = doc.createElement("fechaConfeccion");
+            fechaConfElem.setTextContent(SDF_DMY.format(fechaConfeccion));
+            recetaElem.appendChild(fechaConfElem);
+
+            Element fechaRetElem = doc.createElement("fechaRetiro");
+            fechaRetElem.setTextContent(SDF_DMY.format(fechaRetiro));
+            recetaElem.appendChild(fechaRetElem);
+
+            Element fechaProcElem = doc.createElement("fechaProceso");
+            fechaProcElem.setTextContent(""); // vacío al inicio
+            recetaElem.appendChild(fechaProcElem);
+
+            Element fechaListaElem = doc.createElement("fechaLista");
+            fechaListaElem.setTextContent(""); // vacío al inicio
+            recetaElem.appendChild(fechaListaElem);
+
+            Element fechaEntElem = doc.createElement("fechaEntregada");
+            fechaEntElem.setTextContent(""); // vacío al inicio
+            recetaElem.appendChild(fechaEntElem);
+
+            // Paciente
+            Element pacienteElem = doc.createElement("paciente");
+            pacienteElem.setAttribute("id", pacienteSeleccionado.getId());
+            pacienteElem.setAttribute("nombre", pacienteSeleccionado.getNombre());
+            pacienteElem.setAttribute("telefono", pacienteSeleccionado.getTelefono());
+            recetaElem.appendChild(pacienteElem);
+
+            // Medicamentos
+            for (int i = 0; i < tablaMedicamentos.getRowCount(); i++) {
+                Element medElem = doc.createElement("medicamento");
+                medElem.setAttribute("nombre", tablaMedicamentos.getValueAt(i, 0).toString());
+                medElem.setAttribute("presentacion", tablaMedicamentos.getValueAt(i, 1).toString());
+                medElem.setAttribute("cantidad", tablaMedicamentos.getValueAt(i, 2).toString());
+                medElem.setAttribute("indicaciones", tablaMedicamentos.getValueAt(i, 3).toString());
+                medElem.setAttribute("duracion", tablaMedicamentos.getValueAt(i, 4).toString());
+                recetaElem.appendChild(medElem);
+            }
+
+            raiz.appendChild(recetaElem);
+
+            javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
+            javax.xml.transform.Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+            javax.xml.transform.dom.DOMSource source = new javax.xml.transform.dom.DOMSource(doc);
+            javax.xml.transform.stream.StreamResult result = new javax.xml.transform.stream.StreamResult(archivo);
+            transformer.transform(source, result);
+
+            JOptionPane.showMessageDialog(this, "Receta guardada exitosamente. ID: " + nuevoId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al guardar receta.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-    });
-
-    btnCancel.addActionListener(e -> dialog.dispose());
-
-    dialog.setVisible(true);
-}
-
-private void guardarRecetaEnXML(String rutaArchivo) {
-    if (pacienteSeleccionado == null) {
-        JOptionPane.showMessageDialog(this, "Debe seleccionar un paciente.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-        return;
     }
 
-    if (tablaMedicamentos.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(this, "Debe agregar al menos un medicamento.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
+    // ------------------ DETALLES ------------------
+    private void mostrarVentanaDetalles() {
+        JDialog dialog = new JDialog(this, "Detalles de la Prescripción", true);
+        dialog.setSize(600, 450);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
 
-    try {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc;
+        JPanel panelInfo = new JPanel();
+        panelInfo.setBorder(BorderFactory.createTitledBorder("Información"));
+        panelInfo.add(new JLabel("Paciente: " + lblPaciente.getText()));
+        panelInfo.add(new JLabel("Fecha de Retiro: " + txtFechaRetiro.getText()));
+        dialog.add(panelInfo, BorderLayout.NORTH);
 
-        File archivo = new File(rutaArchivo);
-        Element raiz;
-
-        // Si el archivo ya existe, lo cargamos
-        if (archivo.exists()) {
-            doc = builder.parse(archivo);
-            raiz = doc.getDocumentElement();
-        } else {
-            doc = builder.newDocument();
-            raiz = doc.createElement("recetas");
-            doc.appendChild(raiz);
+        String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración"};
+        DefaultTableModel modeloDetalles = new DefaultTableModel(columnas, 0);
+        DefaultTableModel modeloOriginal = (DefaultTableModel) tablaMedicamentos.getModel();
+        for (int i = 0; i < modeloOriginal.getRowCount(); i++) {
+            Object[] fila = new Object[modeloOriginal.getColumnCount()];
+            for (int j = 0; j < modeloOriginal.getColumnCount(); j++) fila[j] = modeloOriginal.getValueAt(i, j);
+            modeloDetalles.addRow(fila);
         }
+        dialog.add(new JScrollPane(new JTable(modeloDetalles)), BorderLayout.CENTER);
 
-        Element recetaElem = doc.createElement("receta");
-        recetaElem.setAttribute("fechaRetiro", txtFechaRetiro.getText().trim());
+        JButton btnCerrar = new JButton("Cerrar");
+        btnCerrar.addActionListener(e -> dialog.dispose());
+        JPanel panelBoton = new JPanel();
+        panelBoton.add(btnCerrar);
+        dialog.add(panelBoton, BorderLayout.SOUTH);
 
-        Element pacienteElem = doc.createElement("paciente");
-        pacienteElem.setAttribute("id", pacienteSeleccionado.getId());
-        pacienteElem.setAttribute("nombre", pacienteSeleccionado.getNombre());
-        pacienteElem.setAttribute("telefono", pacienteSeleccionado.getTelefono());
-        recetaElem.appendChild(pacienteElem);
-
-        for (int i = 0; i < tablaMedicamentos.getRowCount(); i++) {
-            Element medElem = doc.createElement("medicamento");
-            medElem.setAttribute("nombre", tablaMedicamentos.getValueAt(i, 0).toString());
-            medElem.setAttribute("presentacion", tablaMedicamentos.getValueAt(i, 1).toString());
-            medElem.setAttribute("cantidad", tablaMedicamentos.getValueAt(i, 2).toString());
-            medElem.setAttribute("indicaciones", tablaMedicamentos.getValueAt(i, 3).toString());
-            medElem.setAttribute("duracion", tablaMedicamentos.getValueAt(i, 4).toString());
-            recetaElem.appendChild(medElem);
-        }
-
-        raiz.appendChild(recetaElem);
-
-        // Escribir el XML
-        javax.xml.transform.TransformerFactory transformerFactory = javax.xml.transform.TransformerFactory.newInstance();
-        javax.xml.transform.Transformer transformer = transformerFactory.newTransformer();
-        javax.xml.transform.dom.DOMSource source = new javax.xml.transform.dom.DOMSource(doc);
-        javax.xml.transform.stream.StreamResult result = new javax.xml.transform.stream.StreamResult(archivo);
-        transformer.transform(source, result);
-
-        JOptionPane.showMessageDialog(this, "Receta guardada exitosamente.");
-        
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error al guardar receta.", "Error", JOptionPane.ERROR_MESSAGE);
+        dialog.setVisible(true);
     }
-}
-
-private void mostrarVentanaDetalles() {
-    // Crear diálogo modal
-    JDialog dialogDetalles = new JDialog(this, "Detalles de la Prescripción", true);
-    dialogDetalles.setSize(600, 450);
-    dialogDetalles.setLocationRelativeTo(this);
-    dialogDetalles.setLayout(new BorderLayout());
-
-    // Panel superior con datos del paciente y fecha de retiro
-    JPanel panelInfo = new JPanel();
-   
-    panelInfo.setBorder(BorderFactory.createTitledBorder("Información"));
-
-    JLabel lblInfoPaciente = new JLabel("Paciente: " + lblPaciente.getText());
-    JLabel lblFechaRetiroDetalle = new JLabel("Fecha de Retiro: " + txtFechaRetiro.getText());
-
-    panelInfo.add(lblInfoPaciente);
-    panelInfo.add(lblFechaRetiroDetalle);
-
-    // Espacio extra (puedes añadir más info si quieres)
-    panelInfo.add(new JLabel("")); 
-
-    // Panel central con tabla de medicamentos (aunque esté vacía)
-    String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración"};
-    DefaultTableModel modeloDetalles = new DefaultTableModel(columnas, 0);
-
-    // Copiar los datos de la tabla principal a esta tabla detalle
-    DefaultTableModel modeloOriginal = (DefaultTableModel) tablaMedicamentos.getModel();
-    for (int i = 0; i < modeloOriginal.getRowCount(); i++) {
-        Object[] fila = new Object[modeloOriginal.getColumnCount()];
-        for (int j = 0; j < modeloOriginal.getColumnCount(); j++) {
-            fila[j] = modeloOriginal.getValueAt(i, j);
-        }
-        modeloDetalles.addRow(fila);
-    }
-
-    JTable tablaDetalles = new JTable(modeloDetalles);
-    JScrollPane scroll = new JScrollPane(tablaDetalles);
-
-    // Panel para botón cerrar
-    JPanel panelBoton = new JPanel();
-    JButton btnCerrar = new JButton("Cerrar");
-    btnCerrar.addActionListener(e -> dialogDetalles.dispose());
-    panelBoton.add(btnCerrar);
-
-    // Agregar componentes al diálogo
-    dialogDetalles.add(panelInfo, BorderLayout.NORTH);
-    dialogDetalles.add(scroll, BorderLayout.CENTER);
-    dialogDetalles.add(panelBoton, BorderLayout.SOUTH);
-
-    dialogDetalles.setVisible(true);
-}
-
 }

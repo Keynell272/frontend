@@ -10,11 +10,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.text.SimpleDateFormat;
 
 import org.w3c.dom.*;
 
 public class XmlManager {
+
+    // ---------------- UTILIDADES ----------------
 
     private static Document createDocument() throws ParserConfigurationException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -102,7 +103,34 @@ public class XmlManager {
         return usuarios;
     }
 
+    public static void guardarUsuario(Usuario usuario) {
+        List<Usuario> usuarios = cargarUsuarios("usuarios.xml");
+        boolean encontrado = false;
+        for (int i = 0; i < usuarios.size(); i++) {
+            if (usuarios.get(i).getId().equals(usuario.getId())) {
+                usuarios.set(i, usuario);
+                encontrado = true;
+                break;
+            }
+        }
+        if (!encontrado) {
+            usuarios.add(usuario);
+        }
+        guardarUsuarios(usuarios, "usuarios.xml");
+    }
+
+    public static Usuario buscarUsuario(String id) {
+        List<Usuario> usuarios = cargarUsuarios("usuarios.xml");
+        for (Usuario u : usuarios) {
+            if (u.getId().equals(id)) {
+                return u;
+            }
+        }
+        return null;
+    }
+
     // ---------------- MEDICOS -----------------
+    
     public static void guardarMedicos(List<Medico> medicos, String ruta) {
         try {
             Document doc = createDocument();
@@ -182,6 +210,7 @@ public class XmlManager {
     }
 
     // ---------------- PACIENTES ----------------
+    
     public static void guardarPacientes(List<Paciente> pacientes, String ruta) {
         try {
             Document doc = createDocument();
@@ -229,7 +258,9 @@ public class XmlManager {
         }
         return pacientes;
     }
+    
     // ---------------- MEDICAMENTOS ----------------
+
     public static void guardarMedicamentos(List<Medicamento> medicamentos, String ruta) {
         try {
             Document doc = createDocument();
@@ -280,23 +311,67 @@ public class XmlManager {
             Element root = doc.createElement("recetas");
             doc.appendChild(root);
 
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
             for (Receta r : recetas) {
                 Element el = doc.createElement("receta");
                 el.setAttribute("id", r.getId());
-                el.setAttribute("fecha", String.valueOf(r.getFecha().getTime()));
-                el.setAttribute("fechaRetiro", String.valueOf(r.getFechaRetiro().getTime()));
-                el.setAttribute("estado", r.getEstado());
+                
+                // Estado
+                Element estadoEl = doc.createElement("estado");
+                estadoEl.setTextContent(r.getEstado());
+                el.appendChild(estadoEl);
 
-                for (DetalleReceta d : r.getDetalles()) {
-                    Element det = doc.createElement("detalle");
-                    det.setAttribute("codigoMed", d.getMedicamento().getCodigo());
-                    det.setAttribute("cantidad", String.valueOf(d.getCantidad()));
-                    det.setAttribute("indicaciones", d.getIndicaciones());
-                    det.setAttribute("duracion", String.valueOf(d.getDuracionDias()));
-                    el.appendChild(det);
+                // Fechas
+                Element fConf = doc.createElement("fechaConfeccion");
+                fConf.setTextContent(sdf.format(r.getFechaConfeccion()));
+                el.appendChild(fConf);
+
+                Element fRet = doc.createElement("fechaRetiro");
+                fRet.setTextContent(sdf.format(r.getFechaRetiro()));
+                el.appendChild(fRet);
+
+                if (r.getFechaProceso() != null) {
+                    Element fProc = doc.createElement("fechaProceso");
+                    fProc.setTextContent(sdf.format(r.getFechaProceso()));
+                    el.appendChild(fProc);
                 }
+
+                if (r.getFechaLista() != null) {
+                    Element fLis = doc.createElement("fechaLista");
+                    fLis.setTextContent(sdf.format(r.getFechaLista()));
+                    el.appendChild(fLis);
+                }
+
+                if (r.getFechaEntrega() != null) {
+                    Element fEnt = doc.createElement("fechaEntregada");
+                    fEnt.setTextContent(sdf.format(r.getFechaEntrega()));
+                    el.appendChild(fEnt);
+                }
+
+                // Paciente
+                if (r.getPaciente() != null) {
+                    Element pacienteEl = doc.createElement("paciente");
+                    pacienteEl.setAttribute("id", r.getPaciente().getId());
+                    pacienteEl.setAttribute("nombre", r.getPaciente().getNombre());
+                    pacienteEl.setAttribute("telefono", r.getPaciente().getTelefono());
+                    el.appendChild(pacienteEl);
+                }
+
+                // Medicamentos
+                for (DetalleReceta d : r.getDetalles()) {
+                    Element medEl = doc.createElement("medicamento");
+                    medEl.setAttribute("nombre", d.getMedicamento().getNombre());
+                    medEl.setAttribute("presentacion", d.getMedicamento().getPresentacion());
+                    medEl.setAttribute("cantidad", String.valueOf(d.getCantidad()));
+                    medEl.setAttribute("indicaciones", d.getIndicaciones());
+                    medEl.setAttribute("duracion", String.valueOf(d.getDuracionDias()));
+                    el.appendChild(medEl);
+                }
+
                 root.appendChild(el);
             }
+
             saveDocument(doc, ruta);
         } catch (Exception e) {
             e.printStackTrace();
@@ -313,33 +388,65 @@ public class XmlManager {
             Document doc = dBuilder.parse(file);
             NodeList lista = doc.getElementsByTagName("receta");
 
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
             for (int i = 0; i < lista.getLength(); i++) {
                 Element r = (Element) lista.item(i);
-                Receta receta = new Receta(
-                        r.getAttribute("id"),
-                        new Date(Long.parseLong(r.getAttribute("fecha"))),
-                        new Date(Long.parseLong(r.getAttribute("fechaRetiro"))),
-                        r.getAttribute("estado")
-                );
 
-                NodeList dets = r.getElementsByTagName("detalle");
-                for (int j = 0; j < dets.getLength(); j++) {
-                    Element d = (Element) dets.item(j);
-                    String codMed = d.getAttribute("codigoMed");
+                String id = r.getAttribute("id");
+                String estado = r.getElementsByTagName("estado").item(0).getTextContent();
+
+                Date fechaConf = sdf.parse(r.getElementsByTagName("fechaConfeccion").item(0).getTextContent());
+                Date fechaRet = sdf.parse(r.getElementsByTagName("fechaRetiro").item(0).getTextContent());
+
+                Receta receta = new Receta(id, fechaConf, fechaRet, null); // paciente lo cargo abajo
+                receta.setEstado(estado);
+
+                if (r.getElementsByTagName("fechaProceso").getLength() > 0)
+                    receta.setFechaProceso(sdf.parse(r.getElementsByTagName("fechaProceso").item(0).getTextContent()));
+
+                if (r.getElementsByTagName("fechaLista").getLength() > 0)
+                    receta.setFechaLista(sdf.parse(r.getElementsByTagName("fechaLista").item(0).getTextContent()));
+
+                if (r.getElementsByTagName("fechaEntregada").getLength() > 0)
+                    receta.setFechaEntrega(sdf.parse(r.getElementsByTagName("fechaEntregada").item(0).getTextContent()));
+
+                // Paciente
+                NodeList pacNodes = r.getElementsByTagName("paciente");
+                if (pacNodes.getLength() > 0) {
+                    Element p = (Element) pacNodes.item(0);
+                    Paciente paciente = new Paciente(
+                            p.getAttribute("id"),
+                            p.getAttribute("nombre"),
+                            null, // fechaNac no la tienes en receta
+                            p.getAttribute("telefono")
+                    );
+                    receta.setPaciente(paciente);
+                }
+
+                // Medicamentos
+                NodeList meds = r.getElementsByTagName("medicamento");
+                for (int j = 0; j < meds.getLength(); j++) {
+                    Element d = (Element) meds.item(j);
+
+                    // Buscar medicamento por nombre o código
                     Medicamento med = medicamentos.stream()
-                            .filter(m -> m.getCodigo().equals(codMed))
+                            .filter(m -> m.getNombre().equals(d.getAttribute("nombre")))
                             .findFirst().orElse(null);
 
-                    if (med != null) {
-                        DetalleReceta detalle = new DetalleReceta(
-                                med,
-                                Integer.parseInt(d.getAttribute("cantidad")),
-                                d.getAttribute("indicaciones"),
-                                Integer.parseInt(d.getAttribute("duracion"))
-                        );
-                        receta.agregarDetalle(detalle);
+                    if (med == null) {
+                        med = new Medicamento("", d.getAttribute("nombre"), d.getAttribute("presentacion"));
                     }
+
+                    DetalleReceta detalle = new DetalleReceta(
+                            med,
+                            Integer.parseInt(d.getAttribute("cantidad")),
+                            d.getAttribute("indicaciones"),
+                            Integer.parseInt(d.getAttribute("duracion"))
+                    );
+                    receta.agregarDetalle(detalle);
                 }
+
                 recetas.add(receta);
             }
         } catch (Exception e) {
@@ -347,4 +454,5 @@ public class XmlManager {
         }
         return recetas;
     }
+
 }

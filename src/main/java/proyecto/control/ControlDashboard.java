@@ -17,7 +17,7 @@ public class ControlDashboard {
         Map<Integer, Integer> conteo = new HashMap<>();
         for (Receta r : recetas) {
             Calendar cal = Calendar.getInstance();
-            cal.setTime(r.getFecha());
+            cal.setTime(r.getFechaConfeccion());
             int mes = cal.get(Calendar.MONTH) + 1;
             int anio = cal.get(Calendar.YEAR);
             if (anio == year) {
