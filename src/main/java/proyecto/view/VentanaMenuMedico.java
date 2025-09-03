@@ -5,18 +5,10 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -27,18 +19,16 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
+import proyecto.control.ControlMedico;
+import proyecto.model.Medicamento;
 import proyecto.model.Medico;
 import proyecto.model.Paciente;
 
 public class VentanaMenuMedico extends JFrame {
     private Medico medicoLogueado;
+    private ControlMedico controlMedico;
+
 
     private JTextField txtFechaRetiro;
     private JButton btnFecha, btnBuscarPaciente, btnAgregarMedicamento;
@@ -49,8 +39,11 @@ public class VentanaMenuMedico extends JFrame {
 
     public VentanaMenuMedico(Medico medicoLogueado) {
         this.medicoLogueado = medicoLogueado;
+        this.controlMedico = new ControlMedico(this);  // la vista pasa a sí misma
         init();
     }
+
+
 
     private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
         java.net.URL location = getClass().getResource(ruta);
@@ -100,11 +93,17 @@ public class VentanaMenuMedico extends JFrame {
         btnBuscarPaciente.setBounds(10, 25, 150, 30);
         btnBuscarPaciente.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
         panelPrescribir.add(btnBuscarPaciente);
-        btnBuscarPaciente.addActionListener(e -> mostrarVentanaBuscarPaciente());
+        btnBuscarPaciente.addActionListener(e -> controlMedico.buscarPaciente());
+
 
         btnAgregarMedicamento = new JButton("Agregar Medicamento");
         btnAgregarMedicamento.setBounds(170, 25, 180, 30);
         btnAgregarMedicamento.setIcon(cargarIcono("/imagenes/medicamentos logos.png", 20, 20));
+        btnAgregarMedicamento.addActionListener(e -> {
+        List<Medicamento> medicamentos = controlMedico.cargarMedicamentosDesdeXML("medicamentos.xml");
+        VentanaMedicamentos ventanaMedicamentos = new VentanaMedicamentos(this, medicamentos);
+        ventanaMedicamentos.setVisible(true);
+     });
         panelPrescribir.add(btnAgregarMedicamento);
 
         JLabel lblReceta = new JLabel("Receta Médica");
@@ -155,11 +154,13 @@ public class VentanaMenuMedico extends JFrame {
         btnLimpiar = new JButton("Limpiar");
         btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
         btnLimpiar.setBounds(150, 345, 120, 30);
+        btnLimpiar.addActionListener(e -> controlMedico.limpiarFormulario());
         panelPrescribir.add(btnLimpiar);
 
         btnDescartar = new JButton("Descartar Medicamento");
         btnDescartar.setIcon(cargarIcono("/imagenes/Borrar logo.png", 20, 20));
         btnDescartar.setBounds(280, 345, 200, 30);
+        btnDescartar.addActionListener(e -> controlMedico.descartarMedicamento());
         panelPrescribir.add(btnDescartar);
 
         btnDetalles = new JButton("Detalles");
@@ -196,131 +197,56 @@ public class VentanaMenuMedico extends JFrame {
 
     // ------------------------------ MÉTODO BUSCAR PACIENTE ------------------------------
 
-    private void mostrarVentanaBuscarPaciente() {
-        List<Paciente> pacientes = cargarPacientesDesdeXML("pacientes.xml");
 
-        JDialog dialog = new JDialog(this, "Pacientes", true);
-        dialog.setSize(600, 400);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BorderLayout());
 
-        // Panel de filtro con combo para elegir campo (nombre o id) y campo texto
-        JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JComboBox<String> comboFiltro = new JComboBox<>(new String[]{"nombre", "id"});
-        JTextField txtFiltro = new JTextField(20);
-        panelFiltro.add(new JLabel("Filtrar por:"));
-        panelFiltro.add(comboFiltro);
-        panelFiltro.add(txtFiltro);
-        dialog.add(panelFiltro, BorderLayout.NORTH);
-
-        String[] columnas = {"Id", "Nombre", "Telefono", "Fec. Nac."};
-        DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        JTable tabla = new JTable(modelo);
-        JScrollPane scroll = new JScrollPane(tabla);
-        dialog.add(scroll, BorderLayout.CENTER);
-
-        JPanel panelBotones = new JPanel();
-        JButton btnOK = new JButton("OK");
-        JButton btnCancel = new JButton("Cancel");
-        panelBotones.add(btnOK);
-        panelBotones.add(btnCancel);
-        dialog.add(panelBotones, BorderLayout.SOUTH);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-        // Método para cargar lista en la tabla
-        Runnable cargarTabla = () -> {
-            modelo.setRowCount(0);
-            String criterio = comboFiltro.getSelectedItem().toString();
-            String filtroTexto = txtFiltro.getText().trim().toLowerCase();
-
-            for (Paciente p : pacientes) {
-                String valor = criterio.equals("nombre") ? p.getNombre() : p.getId();
-                if (valor.toLowerCase().contains(filtroTexto)) {
-                    modelo.addRow(new String[]{
-                            p.getId(),
-                            p.getNombre(),
-                            p.getTelefono(),
-                            sdf.format(p.getFechaNacimiento())
-                    });
-                }
-            }
-        };
-
-        // Carga inicial completa
-        cargarTabla.run();
-
-        // Actualiza tabla al escribir en filtro o cambiar criterio
-        txtFiltro.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                cargarTabla.run();
-            }
-        });
-
-        comboFiltro.addActionListener(e -> cargarTabla.run());
-
-        btnOK.addActionListener(e -> {
-            int fila = tabla.getSelectedRow();
-            if (fila != -1) {
-                String idSeleccionado = (String) modelo.getValueAt(fila, 0);
-                pacienteSeleccionado = pacientes.stream()
-                        .filter(p -> p.getId().equals(idSeleccionado))
-                        .findFirst()
-                        .orElse(null);
-
-                if (pacienteSeleccionado != null) {
-                    lblPaciente.setText("Paciente: " + pacienteSeleccionado.getNombre());
-                }
-                dialog.dispose();
-            } else {
-                JOptionPane.showMessageDialog(dialog, "Seleccione un paciente.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-
-        btnCancel.addActionListener(e -> dialog.dispose());
-
-        dialog.setVisible(true);
-    }
-
-private List<Paciente> cargarPacientesDesdeXML(String rutaArchivo) {
-    List<Paciente> lista = new ArrayList<>();
-    try {
-        File archivo = new File(rutaArchivo);
-        if (!archivo.exists()) {
-            JOptionPane.showMessageDialog(this, "No se encontró el archivo pacientes.xml", "Archivo no encontrado", JOptionPane.ERROR_MESSAGE);
-            return lista;
-        }
-
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(archivo);
-        doc.getDocumentElement().normalize();
-
-        NodeList nList = doc.getElementsByTagName("paciente");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-        for (int i = 0; i < nList.getLength(); i++) {
-            Element elem = (Element) nList.item(i);
-
-            String id = elem.getAttribute("id");
-            String nombre = elem.getAttribute("nombre");
-            String telefono = elem.getAttribute("telefono");
-            String fechaNacStr = elem.getAttribute("fechaNacimiento");
-
-            Date fechaNacimiento = sdf.parse(fechaNacStr);
-            lista.add(new Paciente(id, nombre, fechaNacimiento, telefono));
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error al cargar pacientes.xml", "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    return lista;
+// Para mostrar mensajes desde el controlador
+public void mostrarMensaje(String mensaje) {
+    JOptionPane.showMessageDialog(this, mensaje);
 }
+
+// Para obtener la fecha de retiro
+public String getFechaRetiro() {
+    return txtFechaRetiro.getText();
+}
+
+// Para obtener la tabla de medicamentos
+public JTable getTablaMedicamentos() {
+    return tablaMedicamentos;
+}
+
+// Para obtener el paciente seleccionado
+public Paciente getPacienteSeleccionado() {
+    return pacienteSeleccionado;
+}
+
+public void setPacienteSeleccionado(Paciente paciente) {
+    this.pacienteSeleccionado = paciente;
+    if (paciente != null) {
+        lblPaciente.setText("Paciente: " + paciente.getNombre());
+    } else {
+        lblPaciente.setText("");
+    }
+}
+
+   public void limpiarCampos() {
+    txtFechaRetiro.setText(""); // o poner fecha actual si quieres
+
+    // Limpiar etiqueta paciente
+    lblPaciente.setText("Paciente:");
+
+    }
+
+public int getFilaMedicamentoSeleccionado() {
+    return tablaMedicamentos.getSelectedRow();
+}
+
+public void eliminarMedicamentoDeTabla(int fila) {
+    if (fila >= 0) {
+        DefaultTableModel modelo = (DefaultTableModel) tablaMedicamentos.getModel();
+        modelo.removeRow(fila);
+    }
+}
+
+
 
 }

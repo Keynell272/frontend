@@ -24,6 +24,7 @@ import proyecto.control.ControlLogin;
 import proyecto.model.Farmaceuta;
 import proyecto.model.Medico;
 import proyecto.model.Usuario;
+import proyecto.view.VentanaMenuMedico;
 
 public class VentanaLogin extends JFrame {
     private ControlLogin controlLogin;
