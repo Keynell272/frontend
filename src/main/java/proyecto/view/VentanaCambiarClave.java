@@ -34,6 +34,7 @@ public class VentanaCambiarClave extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new GridLayout(4, 2, 5, 5));
         setResizable(false);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         URL iconoVentana = getClass().getResource("/imagenes/clave de seguridad logo.png");
         if (iconoVentana != null) { 
