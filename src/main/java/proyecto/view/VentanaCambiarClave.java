@@ -1,7 +1,7 @@
 package proyecto.view;
 
 import proyecto.model.Usuario;
-import proyecto.persistencia.XmlManager;
+import proyecto.control.ControlLogin;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,11 +13,13 @@ public class VentanaCambiarClave extends JFrame {
     private Usuario usuario;
     private List<Usuario> listaUsuarios;
     private JFrame ventanaLogin; // referencia al login
+    private ControlLogin controlLogin;
 
-    public VentanaCambiarClave(Usuario usuario, List<Usuario> listaUsuarios, JFrame ventanaLogin) {
+    public VentanaCambiarClave(Usuario usuario, List<Usuario> listaUsuarios, JFrame ventanaLogin, ControlLogin controlLogin) {
         this.usuario = usuario;
         this.listaUsuarios = listaUsuarios;
         this.ventanaLogin = ventanaLogin;
+        this.controlLogin = controlLogin;
         init();
     }
 
@@ -37,13 +39,12 @@ public class VentanaCambiarClave extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         URL iconoVentana = getClass().getResource("/imagenes/clave de seguridad logo.png");
-        if (iconoVentana != null) { 
-            setIconImage(new ImageIcon(iconoVentana).getImage()); 
-        } else { 
-            System.err.println("❌ No se encontró el ícono de la ventana."); 
+        if (iconoVentana != null) {
+            setIconImage(new ImageIcon(iconoVentana).getImage());
+        } else {
+            System.err.println("❌ No se encontró el ícono de la ventana.");
         }
 
-        // Ocultar login mientras está abierta esta ventana
         if (ventanaLogin != null) ventanaLogin.setVisible(false);
 
         add(new JLabel("Clave Actual:"));
@@ -58,7 +59,6 @@ public class VentanaCambiarClave extends JFrame {
         txtConfirmar = new JPasswordField();
         add(txtConfirmar);
 
-        // Botones con íconos
         URL iconoOk = getClass().getResource("/imagenes/Check logo.png");
         URL iconoCancel = getClass().getResource("/imagenes/X logo.png");
 
@@ -73,37 +73,16 @@ public class VentanaCambiarClave extends JFrame {
         add(btnOk);
         add(btnCancel);
 
-        btnOk.addActionListener(e -> cambiarClave());
+        btnOk.addActionListener(e -> {
+            String actual = new String(txtActual.getPassword());
+            String nueva = new String(txtNueva.getPassword());
+            String confirmar = new String(txtConfirmar.getPassword());
+            controlLogin.cambiarClave(usuario, listaUsuarios, actual, nueva, confirmar, this, ventanaLogin);
+        });
+
         btnCancel.addActionListener(e -> {
-            if (ventanaLogin != null) ventanaLogin.setVisible(true); // volver a mostrar login
+            if (ventanaLogin != null) ventanaLogin.setVisible(true);
             dispose();
         });
-    }
-
-    private void cambiarClave() {
-        String actual = new String(txtActual.getPassword());
-        String nueva = new String(txtNueva.getPassword());
-        String confirmar = new String(txtConfirmar.getPassword());
-
-        if (!usuario.getClave().equals(actual)) {
-            JOptionPane.showMessageDialog(this, "❌ La clave actual no es correcta");
-            return;
-        }
-        if (!nueva.equals(confirmar)) {
-            JOptionPane.showMessageDialog(this, "❌ Las claves nuevas no coinciden");
-            return;
-        }
-        if (nueva.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "❌ La nueva clave no puede estar vacía");
-            return;
-        }
-
-        usuario.setClave(nueva);
-        XmlManager.guardarUsuarios(listaUsuarios, "usuarios.xml");
-
-        JOptionPane.showMessageDialog(this, "✅ Clave cambiada correctamente");
-
-        if (ventanaLogin != null) ventanaLogin.setVisible(true); // volver al login
-        dispose();
     }
 }

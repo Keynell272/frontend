@@ -1,6 +1,9 @@
 package proyecto.control;
 import java.util.List;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 import proyecto.model.Farmaceuta;
 import proyecto.model.Medico;
 import proyecto.model.Usuario;
@@ -70,7 +73,33 @@ public class ControlLogin {
 
     // Abrir ventana para cambiar clave
     public void openChangePassword(javax.swing.JFrame parent, Usuario u) {
-        new VentanaCambiarClave(u, usuarios, parent).setVisible(true);
+        new VentanaCambiarClave(u, usuarios, parent, this).setVisible(true);
     }
+
+    public void cambiarClave(Usuario usuario, List<Usuario> listaUsuarios,
+                             String actual, String nueva, String confirmar,
+                             JFrame ventana, JFrame ventanaLogin) {
+        if (!usuario.getClave().equals(actual)) {
+            JOptionPane.showMessageDialog(ventana, "❌ La clave actual no es correcta");
+            return;
+        }
+        if (!nueva.equals(confirmar)) {
+            JOptionPane.showMessageDialog(ventana, "❌ Las claves nuevas no coinciden");
+            return;
+        }
+        if (nueva.isEmpty()) {
+            JOptionPane.showMessageDialog(ventana, "❌ La nueva clave no puede estar vacía");
+            return;
+        }
+
+        usuario.setClave(nueva);
+        proyecto.persistencia.XmlManager.guardarUsuarios(listaUsuarios, "usuarios.xml");
+
+        JOptionPane.showMessageDialog(ventana, "✅ Clave cambiada correctamente");
+
+        if (ventanaLogin != null) ventanaLogin.setVisible(true);
+        ventana.dispose();
+    }
+
 
 }
