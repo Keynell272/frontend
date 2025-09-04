@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <medicamentos>
-    <medicamento codigo="111" nombre="meta" presentacion="100mg"/>
+    <medicamento codigo="MED-111" nombre="Paracetamol" presentacion="100mg"/>
 </medicamentos>

@@ -14,7 +14,6 @@ import proyecto.view.VentanaCambiarClave;
 import proyecto.view.VentanaMenuAdmin;
 import proyecto.view.VentanaMenuFarmaceuta;
 import proyecto.view.VentanaMenuMedico;
-import proyecto.control.ControlReceta;
 
 public class ControlLogin {
     private List<Usuario> usuarios;
@@ -71,7 +70,7 @@ public class ControlLogin {
         if (u instanceof Medico) {
             new VentanaMenuMedico((Medico) u, new ControlReceta(recetas)).setVisible(true);
         } else if (u instanceof Farmaceuta) {
-            new VentanaMenuFarmaceuta((Farmaceuta) u).setVisible(true);
+            new VentanaMenuFarmaceuta((Farmaceuta) u, new ControlReceta(recetas)).setVisible(true);
         } else {
             new VentanaMenuAdmin(u).setVisible(true);
         }
@@ -99,8 +98,18 @@ public class ControlLogin {
             return;
         }
 
-        usuario.setClave(nueva);
-        proyecto.persistencia.XmlManager.guardarUsuarios(listaUsuarios, "usuarios.xml");
+        // Cambiar la clave a el usuario, medico o farmaceuta
+        if (usuario instanceof Medico) {
+            ((Medico) usuario).setClave(nueva);
+            proyecto.persistencia.XmlManager.guardarMedicos(medicos, "medicos.xml");
+        } else if (usuario instanceof Farmaceuta) {
+            ((Farmaceuta) usuario).setClave(nueva);
+            proyecto.persistencia.XmlManager.guardarFarmaceutas(farmaceutas, "farmaceutas.xml");
+        }
+        else
+            usuario.setClave(nueva);
+            proyecto.persistencia.XmlManager.guardarUsuarios(listaUsuarios, "usuarios.xml");
+        
 
         JOptionPane.showMessageDialog(ventana, "✅ Clave cambiada correctamente");
 
