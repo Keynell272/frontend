@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <farmaceutas>
-    <farmaceuta clave="123" id="Far1" nombre="1"/>
-    <farmaceuta clave="123" id="2" nombre="2"/>
+    <farmaceuta clave="123" id="FAR-111" nombre="Maria Alvarado"/>
 </farmaceutas>

@@ -1,15 +1,36 @@
 package proyecto.view;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
 import proyecto.control.ControlReceta;
-import proyecto.model.*;
+import proyecto.model.DatePickerConNavegacion;
+import proyecto.model.Medicamento;
+import proyecto.model.Medico;
+import proyecto.model.Paciente;
 
 public class VentanaMenuMedico extends JFrame {
     private Medico medicoLogueado;
@@ -109,7 +130,7 @@ public class VentanaMenuMedico extends JFrame {
         DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                return col == 2 || col == 3 || col == 4;
+                return false;
             }
         };
         tablaMedicamentos = new JTable(modeloTabla);
@@ -323,14 +344,36 @@ public class VentanaMenuMedico extends JFrame {
         dialog.add(panelInfo, BorderLayout.NORTH);
 
         String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración"};
-        DefaultTableModel modeloDetalles = new DefaultTableModel(columnas, 0);
+        DefaultTableModel modeloDetalles = new DefaultTableModel(columnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                // Solo columnas Cantidad, Indicaciones y Duración son editables
+                return col == 2 || col == 3 || col == 4;
+            }
+        };
+
         DefaultTableModel modeloOriginal = (DefaultTableModel) tablaMedicamentos.getModel();
         for (int i = 0; i < modeloOriginal.getRowCount(); i++) {
             Object[] fila = new Object[modeloOriginal.getColumnCount()];
-            for (int j = 0; j < modeloOriginal.getColumnCount(); j++) fila[j] = modeloOriginal.getValueAt(i, j);
+            for (int j = 0; j < modeloOriginal.getColumnCount(); j++) {
+                fila[j] = modeloOriginal.getValueAt(i, j);
+            }
             modeloDetalles.addRow(fila);
         }
-        dialog.add(new JScrollPane(new JTable(modeloDetalles)), BorderLayout.CENTER);
+
+        JTable tablaDetalles = new JTable(modeloDetalles);
+
+        // Listener para sincronizar cambios con tabla principal
+        tablaDetalles.getModel().addTableModelListener(e -> {
+            int fila = e.getFirstRow();
+            int columna = e.getColumn();
+            if (fila >= 0 && (columna == 2 || columna == 3 || columna == 4)) {
+                Object nuevoValor = tablaDetalles.getValueAt(fila, columna);
+                tablaMedicamentos.setValueAt(nuevoValor, fila, columna);
+            }
+        });
+
+        dialog.add(new JScrollPane(tablaDetalles), BorderLayout.CENTER);
 
         JButton btnCerrar = new JButton("Cerrar");
         btnCerrar.addActionListener(e -> dialog.dispose());

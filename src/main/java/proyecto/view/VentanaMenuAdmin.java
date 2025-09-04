@@ -5,7 +5,6 @@ import proyecto.model.Usuario;
 import proyecto.model.Farmaceuta;
 import proyecto.model.Medicamento;
 import proyecto.model.Paciente;
-import proyecto.persistencia.XmlManager;
 import proyecto.control.ControlAdmin;
 import proyecto.model.DatePickerConNavegacion;
 import java.util.Date;
@@ -54,7 +53,7 @@ public class VentanaMenuAdmin extends JFrame {
     }
 
     private void init() {
-        setTitle("Recetas - " + usuarioLogueado.getNombre() + " (" + usuarioLogueado.getRol() + ")");
+        setTitle(usuarioLogueado.getNombre() + " (" + usuarioLogueado.getRol() + ")");
         setSize(900, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -203,6 +202,10 @@ public class VentanaMenuAdmin extends JFrame {
 
         btnGuardar.addActionListener(e -> {
             String id = txtId.getText().trim();
+            if (controlAdmin.esIdUnico(id) == false) {
+                JOptionPane.showMessageDialog(this, "El ID ya existe. Ingrese uno diferente.");
+                return;
+            }
             String nombre = txtNombre.getText().trim();
             String especialidad = txtEspecialidad.getText().trim();
 
@@ -378,6 +381,10 @@ public class VentanaMenuAdmin extends JFrame {
 
         btnGuardar.addActionListener(e -> {
             String id = txtIdFarm.getText().trim();
+            if (controlAdmin.esIdUnico(id) == false) {
+                JOptionPane.showMessageDialog(this, "El ID ya existe. Ingrese uno diferente.");
+                return;
+            }
             String nombre = txtNombreFarm.getText().trim();
 
             if (id.isEmpty() || nombre.isEmpty()) {
@@ -402,7 +409,7 @@ public class VentanaMenuAdmin extends JFrame {
 
             String id = (String) modeloTablaFarm.getValueAt(fila, 0);
             controlAdmin.eliminarFarmaceuta(id);
-            modeloTabla.removeRow(fila);
+            modeloTablaFarm.removeRow(fila);
             controlAdmin.guardarFarmaceutas();
 
             JOptionPane.showMessageDialog(this, "✅ Farmacéuta eliminado");
@@ -547,6 +554,19 @@ public class VentanaMenuAdmin extends JFrame {
         scrollPane.setBounds(10, 280, 650, 280);
         panel.add(scrollPane);
 
+        // Bordes
+        txtIdPac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        txtNombrePac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        txtFechaNac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        txtTelefonoPac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        txtBusquedaNombrePac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        btnGuardar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnLimpiar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnBorrar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnBuscar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnRestaurar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnReporte.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+
         // Cargar pacientes al abrir
         for (Paciente p : pacientes) {
             modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
@@ -555,6 +575,10 @@ public class VentanaMenuAdmin extends JFrame {
         // Acciones
         btnGuardar.addActionListener(e -> {
             String id = txtIdPac.getText().trim();
+            if (controlAdmin.esIdUnico(id) == false) {
+                JOptionPane.showMessageDialog(this, "El ID ya existe. Ingrese uno diferente.");
+                return;
+            }
             String nombre = txtNombrePac.getText().trim();
             String tel = txtTelefonoPac.getText().trim();
             Date fecha = null;
@@ -578,9 +602,10 @@ public class VentanaMenuAdmin extends JFrame {
             }
 
             Paciente p = new Paciente(id, nombre, fecha, tel);
-            pacientes.add(p);
+            controlAdmin.agregarPaciente(p);
             modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
-            XmlManager.guardarPacientes(pacientes, "pacientes.xml");
+            
+            controlAdmin.guardarPacientes();
 
             JOptionPane.showMessageDialog(this, "✅ Paciente guardado con éxito");
             txtIdPac.setText(""); txtNombrePac.setText(""); txtTelefonoPac.setText("");
@@ -599,7 +624,7 @@ public class VentanaMenuAdmin extends JFrame {
             String id = (String) modeloTablaPac.getValueAt(fila, 0);
             pacientes.removeIf(p -> p.getId().equals(id));
             modeloTablaPac.removeRow(fila);
-            XmlManager.guardarPacientes(pacientes, "pacientes.xml");
+            controlAdmin.guardarPacientes();
             JOptionPane.showMessageDialog(this, "✅ Paciente eliminado");
         });
 
@@ -727,12 +752,28 @@ public class VentanaMenuAdmin extends JFrame {
         scrollPane.setBounds(10, 260, 650, 300);
         panel.add(scrollPane);
 
+        // Bordes
+        txtCodigo.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        txtNombre.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        txtPresentacion.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        txtBusquedaNombre.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+        btnGuardar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnLimpiar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnBorrar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnBuscar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnRestaurar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        btnReporte.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+
         for (Medicamento med : medicamentos) {
             modeloTabla.addRow(new Object[]{med.getCodigo(), med.getNombre(), med.getPresentacion()});
         }
 
         btnGuardar.addActionListener(e -> {
             String codigo = txtCodigo.getText().trim();
+            if (controlAdmin.existeMedicamento(codigo)) {
+                JOptionPane.showMessageDialog(this, "El código ya existe. Ingrese uno diferente.");
+                return;
+            }
             String nombre = txtNombre.getText().trim();
             String presentacion = txtPresentacion.getText().trim();
 

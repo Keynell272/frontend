@@ -3,14 +3,12 @@ package proyecto.control;
 import proyecto.model.*;
 import proyecto.persistencia.XmlManager;
 
-import java.awt.Component;
 import java.io.File;
 import java.util.*;
 
 import javax.swing.JOptionPane;
 
 import java.text.SimpleDateFormat;
-import java.text.ParseException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -220,4 +218,30 @@ public class ControlReceta {
         List<Paciente> lista = XmlManager.cargarPacientes("pacientes.xml");
         return lista;
     }
+
+    public void guardarCambios(String ruta) {
+        XmlManager.guardarRecetas(recetas, ruta);
+    }
+    
+    public String validarFechaRetiro(Receta receta) {
+        Date hoy = new Date();
+        Date fechaRetiro = receta.getFechaRetiro();
+
+        if (hoy.before(fechaRetiro)) {
+            return "anticipado"; 
+        } else if (hoy.after(fechaRetiro)) {
+            return "atrasado";   
+        } else {
+            return "normal";    
+        }
+    }
+    public Receta buscarPorId(String id) {
+        for (Receta r : recetas) {
+            if (r.getId().equals(id)) {
+                return r;
+            }
+        }
+        return null;
+    }
+
 }

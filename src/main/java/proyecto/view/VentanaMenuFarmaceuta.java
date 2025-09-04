@@ -1,168 +1,285 @@
 package proyecto.view;
 
-import proyecto.model.Farmaceuta;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import proyecto.model.*;
+import proyecto.control.*;
 
 public class VentanaMenuFarmaceuta extends JFrame {
     private Farmaceuta farmaceutaLogueado;
+    private ControlReceta controlReceta;
 
-    private JTextField txtFechaRetiro;
-    private JButton btnFecha, btnBuscarPaciente, btnAgregarMedicamento;
-    private JTable tablaMedicamentos;
-    private JButton btnGuardar, btnLimpiar, btnDescartar, btnDetalles;
+    private JTable tablaRecetas;
+    private DefaultTableModel modeloTabla;
 
-    public VentanaMenuFarmaceuta(Farmaceuta farmaceutaLogueado) {
+    public VentanaMenuFarmaceuta(Farmaceuta farmaceutaLogueado, ControlReceta controlReceta) {
         this.farmaceutaLogueado = farmaceutaLogueado;
+        this.controlReceta = controlReceta;
         init();
     }
 
-    private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
-        java.net.URL location = getClass().getResource(ruta);
-        if (location == null) {
-            System.err.println("No se encontró la imagen: " + ruta);
-            return null;
-        }
-        ImageIcon icono = new ImageIcon(location);
-        Image imagen = icono.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
-        return new ImageIcon(imagen);
-    }
-
     private void init() {
-        setTitle("Recetas - " + farmaceutaLogueado.getId() + " (" + farmaceutaLogueado.getRol() + ")");
-        setSize(700, 450);
+        setTitle("Recetas - " + farmaceutaLogueado.getId() + " (FARM)");
+        setSize(800, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
         setIconImage(cargarIcono("/imagenes/farmaceuta logo.png", 32, 32).getImage());
 
         JTabbedPane tabbedPane = new JTabbedPane();
-
-        JPanel panelPrescribir = crearPanelPrescribir();
-        tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), panelPrescribir);
-
-        JPanel panelDashboard = new JPanel();
-        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), panelDashboard);
-
-        JPanel panelHistorico = new JPanel();
-        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), panelHistorico);
-
-        JPanel panelAcerca = crearPanelAcercaDe();
-        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), panelAcerca);
+        tabbedPane.addTab("Administrar Recetas", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelFarmaceuta());
+        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), crearPanelDashboard());
+        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), crearPanelHistorico());
+        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
 
         add(tabbedPane);
     }
 
-    private JPanel crearPanelPrescribir() {
-        JPanel panelPrescribir = new JPanel();
-        panelPrescribir.setLayout(null);
+    // ------------------ PANEL FARMACEUTA ------------------
+    private JPanel crearPanelFarmaceuta() {
+        JPanel panel = new JPanel(new BorderLayout());
 
-        JLabel lblControl = new JLabel("Control");
-        lblControl.setFont(new Font("Arial", Font.BOLD, 12));
-        lblControl.setBounds(10, 5, 100, 20);
-        panelPrescribir.add(lblControl);
-
-        btnBuscarPaciente = new JButton("Buscar Paciente");
-        btnBuscarPaciente.setBounds(10, 25, 150, 30);
-        btnBuscarPaciente.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
-        panelPrescribir.add(btnBuscarPaciente);
-
-        btnAgregarMedicamento = new JButton("Agregar Medicamento");
-        btnAgregarMedicamento.setBounds(170, 25, 180, 30);
-        btnAgregarMedicamento.setIcon(cargarIcono("/imagenes/medicamentos logos.png", 20, 20));
-        panelPrescribir.add(btnAgregarMedicamento);
-
-        JLabel lblReceta = new JLabel("Receta Médica");
-        lblReceta.setFont(new Font("Arial", Font.BOLD, 12));
-        lblReceta.setBounds(10, 70, 120, 20);
-        panelPrescribir.add(lblReceta);
-
-        JLabel lblFechaRetiro = new JLabel("Fecha de Retiro");
-        lblFechaRetiro.setForeground(Color.RED);
-        lblFechaRetiro.setBounds(20, 95, 100, 25);
-        panelPrescribir.add(lblFechaRetiro);
-
-        txtFechaRetiro = new JTextField();
-        txtFechaRetiro.setBounds(130, 95, 150, 25);
-        panelPrescribir.add(txtFechaRetiro);
-
-        btnFecha = new JButton("...");
-        btnFecha.setBounds(290, 95, 40, 25);
-        panelPrescribir.add(btnFecha);
-
-        JLabel lblPaciente = new JLabel("");
-        lblPaciente.setFont(new Font("Arial", Font.BOLD, 12));
-        lblPaciente.setForeground(new Color(0, 70, 140));
-        lblPaciente.setBounds(20, 130, 200, 25);
-        panelPrescribir.add(lblPaciente);
-
-        String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración"};
-        DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
-            @Override
-            public boolean isCellEditable(int row, int col) {
-                return false;
-            }
+        String[] columnas = {"ID", "Paciente", "Estado", "Fecha Retiro"};
+        modeloTabla = new DefaultTableModel(columnas, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        tablaMedicamentos = new JTable(modeloTabla);
-        JScrollPane scroll = new JScrollPane(tablaMedicamentos);
-        scroll.setBounds(20, 160, 740, 150);
-        panelPrescribir.add(scroll);
+        tablaRecetas = new JTable(modeloTabla);
+        JScrollPane scroll = new JScrollPane(tablaRecetas);
 
-        JLabel lblAjustar = new JLabel("Ajustar Prescripción");
-        lblAjustar.setFont(new Font("Arial", Font.BOLD, 12));
-        lblAjustar.setBounds(10, 320, 150, 20);
-        panelPrescribir.add(lblAjustar);
+        JPanel panelBotones = new JPanel(new FlowLayout());
+        JButton btnProceso = new JButton("Pasar a Proceso");
+        JButton btnLista = new JButton("Marcar como Lista");
+        JButton btnEntregar = new JButton("Entregar");
+        JButton btnDetalles = new JButton("Detalles");
 
-        btnGuardar = new JButton("Guardar");
-        btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
-        btnGuardar.setBounds(20, 345, 120, 30);
-        panelPrescribir.add(btnGuardar);
+        panelBotones.add(btnProceso);
+        panelBotones.add(btnLista);
+        panelBotones.add(btnEntregar);
+        panelBotones.add(btnDetalles);
 
-        btnLimpiar = new JButton("Limpiar");
-        btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
-        btnLimpiar.setBounds(150, 345, 120, 30);
-        panelPrescribir.add(btnLimpiar);
+        btnProceso.addActionListener(this::accionPasarProceso);
+        btnLista.addActionListener(this::accionMarcarLista);
+        btnEntregar.addActionListener(this::accionEntregar);
+        btnDetalles.addActionListener(this::accionDetalles);
 
-        btnDescartar = new JButton("Descartar Medicamento");
-        btnDescartar.setIcon(cargarIcono("/imagenes/Borrar logo.png", 20, 20));
-        btnDescartar.setEnabled(true);
-        btnDescartar.setBounds(280, 345, 200, 30);
-        panelPrescribir.add(btnDescartar);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(panelBotones, BorderLayout.SOUTH);
 
-        btnDetalles = new JButton("Detalles");
-        btnDetalles.setIcon(cargarIcono("/imagenes/Check logo.png", 20, 20));
-        btnDetalles.setEnabled(true);
-        btnDetalles.setBounds(490, 345, 120, 30);
-        panelPrescribir.add(btnDetalles);
+        cargarRecetasEnTabla();
 
-        return panelPrescribir;
+        return panel;
     }
 
+    // ------------------ PANEL HISTORICO ------------------
+    private JPanel crearPanelHistorico() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        String[] columnas = {
+            "ID", "Paciente", "Estado",
+            "Fecha Confección", "Fecha Retiro", "Fecha Proceso", "Fecha Lista", "Fecha Entregada"
+        };
+        DefaultTableModel modeloHistorico = new DefaultTableModel(columnas, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        JTable tablaHistorico = new JTable(modeloHistorico);
+        JScrollPane scroll = new JScrollPane(tablaHistorico);
+
+        panel.add(scroll, BorderLayout.CENTER);
+
+        // cargar recetas en la tabla
+        cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+
+        return panel;
+    }
+
+
+    // ------------------ PANEL ACERCA DE ------------------
     private JPanel crearPanelAcercaDe() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(230, 233, 237));
 
-        JLabel lblTitulo = new JLabel("Prescripcion y Despacho de Recetas", SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("Gestión de Recetas (Farmaceuta)", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
         lblTitulo.setForeground(Color.BLUE);
         panel.add(lblTitulo, BorderLayout.NORTH);
 
         JLabel lblImagen = new JLabel();
         lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
-        lblImagen.setIcon(cargarIcono("/imagenes/hospital imagen principal.jpg", 700, 400));
+        lblImagen.setIcon(cargarIcono("/imagenes/hospital imagen principal.jpg", 700, 300));
         panel.add(lblImagen, BorderLayout.CENTER);
 
         JPanel subPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         subPanel.setBackground(new Color(230, 233, 237));
-
         JLabel lblInfo = new JLabel("Total Soft Inc.   @totalsoft   Tel. 67197691");
         lblInfo.setFont(new Font("Arial", Font.PLAIN, 14));
         subPanel.add(lblInfo);
-
         panel.add(subPanel, BorderLayout.SOUTH);
 
         return panel;
     }
+
+    // ------------------ PANEL DASHBOARD ------------------
+    private JPanel crearPanelDashboard() {
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel lblTitulo = new JLabel("Dashboard - Próximamente", SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
+        lblTitulo.setForeground(Color.BLUE);
+        panel.add(lblTitulo, BorderLayout.CENTER);
+        return panel;
+    }
+
+    // ------------------ ACCIONES ------------------
+    private void accionPasarProceso(ActionEvent e) {
+        int fila = tablaRecetas.getSelectedRow();
+        if (fila != -1) {
+            String id = modeloTabla.getValueAt(fila, 0).toString();
+            Receta r = buscarRecetaPorId(id);
+            if (r != null && "confeccionada".equals(r.getEstado())) {
+                r.cambiarEstado("proceso");
+                r.setFechaProceso(new java.util.Date());
+                controlReceta.guardarCambios("recetas.xml");
+                JOptionPane.showMessageDialog(this, "Receta " + id + " pasó a PROCESO.");
+                cargarRecetasEnTabla();
+            }
+        }
+    }
+
+    private void accionMarcarLista(ActionEvent e) {
+        int fila = tablaRecetas.getSelectedRow();
+        if (fila != -1) {
+            String id = modeloTabla.getValueAt(fila, 0).toString();
+            Receta r = buscarRecetaPorId(id);
+            if (r != null && "proceso".equals(r.getEstado())) {
+                r.cambiarEstado("lista");
+                r.setFechaLista(new java.util.Date());
+                controlReceta.guardarCambios("recetas.xml"); 
+                JOptionPane.showMessageDialog(this, "Receta " + id + " marcada como LISTA.");
+                cargarRecetasEnTabla();
+            }
+        }
+    }
+
+    private void accionEntregar(ActionEvent e) {
+        int fila = tablaRecetas.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Seleccione una receta.");
+            return;
+        }
+
+        String idReceta = modeloTabla.getValueAt(fila, 0).toString();
+        Receta receta = controlReceta.buscarPorId(idReceta);
+
+        if (receta != null) {
+            String resultado = controlReceta.validarFechaRetiro(receta);
+
+            switch (resultado) {
+                case "anticipado":
+                    JOptionPane.showMessageDialog(this,
+                        "⏳ El paciente se presentó antes de la fecha de retiro: " +
+                        new SimpleDateFormat("dd/MM/yyyy").format(receta.getFechaRetiro()) +
+                        ". No se permite la entrega.");
+                    break;
+
+                case "atrasado":
+                    JOptionPane.showMessageDialog(this,
+                        "⚠️ El paciente se presentó después de la fecha de retiro: " +
+                        new SimpleDateFormat("dd/MM/yyyy").format(receta.getFechaRetiro()) +
+                        ". Se entregará fuera de tiempo.");
+                    receta.cambiarEstado("entregada");
+                    receta.setFechaEntrega(new Date());
+                    controlReceta.guardarCambios("recetas.xml");
+                    break;
+
+                case "normal":
+                    JOptionPane.showMessageDialog(this, "✅ Retiro en fecha correcta.");
+                    receta.cambiarEstado("entregada");
+                    receta.setFechaEntrega(new Date());
+                    controlReceta.guardarCambios("recetas.xml");
+                    break;
+            }
+        }
+    }
+
+    private void accionDetalles(ActionEvent e) {
+        int fila = tablaRecetas.getSelectedRow();
+        if (fila != -1) {
+            String id = modeloTabla.getValueAt(fila, 0).toString();
+            Receta r = buscarRecetaPorId(id);
+            if (r != null) {
+                JDialog dialog = new JDialog(this, "Detalles Receta " + id, true);
+                dialog.setSize(500, 400);
+                dialog.setLocationRelativeTo(this);
+
+                JTextArea txtDetalles = new JTextArea();
+                txtDetalles.setEditable(false);
+                txtDetalles.append("Paciente: " + r.getPaciente().getNombre() + "\n");
+                txtDetalles.append("Estado: " + r.getEstado() + "\n");
+                txtDetalles.append("Medicamentos:\n");
+                for (DetalleReceta d : r.getDetalles()) {
+                    txtDetalles.append("- " + d.getMedicamento().getNombre() +
+                            " (" + d.getCantidad() + "): " +
+                            d.getIndicaciones() + "\n");
+                }
+                dialog.add(new JScrollPane(txtDetalles));
+                dialog.setVisible(true);
+            }
+        }
+    }
+
+    // ------------------ UTILS ------------------
+    private final SimpleDateFormat SDF_DMY = new SimpleDateFormat("dd/MM/yyyy");
+
+    private String formatearFecha(Date d) {
+        return (d != null) ? SDF_DMY.format(d) : "";
+    }
+
+    private void cargarRecetasEnTabla() {
+        modeloTabla.setRowCount(0);
+        for (Receta r : controlReceta.getRecetas()) {
+            modeloTabla.addRow(new Object[]{
+                    r.getId(),
+                    r.getPaciente().getNombre(),
+                    r.getEstado(),
+                    formatearFecha(r.getFechaRetiro())
+            });
+        }
+    }
+
+    private Receta buscarRecetaPorId(String id) {
+        return controlReceta.getRecetas().stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
+        java.net.URL location = getClass().getResource(ruta);
+        if (location == null) return null;
+        ImageIcon icono = new ImageIcon(location);
+        Image img = icono.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+        return new ImageIcon(img);
+    }
+
+    private void cargarHistorico(List<Receta> recetas, DefaultTableModel modelo) {
+        modelo.setRowCount(0); // limpiar tabla
+        for (Receta r : recetas) {
+            modelo.addRow(new Object[]{
+                r.getId(),
+                (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
+                r.getEstado(),
+                formatearFecha(r.getFechaConfeccion()),
+                formatearFecha(r.getFechaRetiro()),
+                formatearFecha(r.getFechaProceso()),
+                formatearFecha(r.getFechaLista()),
+                formatearFecha(r.getFechaEntrega())
+            });
+        }
+}
+
 }

@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <recetas>
-    
-    <receta id="R001">
-        <estado>confeccionada</estado>
-        <fechaConfeccion>03/09/2025</fechaConfeccion>
-        <fechaRetiro>18/09/2025</fechaRetiro>
-        <fechaProceso/>
-        <fechaLista/>
-        <fechaEntregada/>
-        <paciente id="1" nombre="1" telefono="1"/>
-        <medicamento cantidad="1" duracion="1" indicaciones="1" nombre="meta" presentacion="100mg"/>
+    <receta id="R002">
+        <estado>lista</estado>
+        <fechaConfeccion>04/09/2025</fechaConfeccion>
+        <fechaRetiro>05/09/2025</fechaRetiro>
+        <fechaProceso>04/09/2025</fechaProceso>
+        <fechaLista>04/09/2025</fechaLista>
+        <paciente id="PAC-111" nombre="Keynell Molina" telefono="60495194"/>
+        <medicamento cantidad="5" duracion="30" indicaciones="Dia y noche" nombre="Paracetamol" presentacion="100mg"/>
     </receta>
 </recetas>
