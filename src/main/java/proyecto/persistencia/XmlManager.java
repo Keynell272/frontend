@@ -234,7 +234,7 @@ public class XmlManager {
         }
     }
     public static List<Paciente> cargarPacientes(String ruta) {
-    List<Paciente> pacientes = new ArrayList<>();
+        List<Paciente> pacientes = new ArrayList<>();
         try {
             File file = new File(ruta);
             if (!file.exists()) return pacientes;
@@ -380,6 +380,9 @@ public class XmlManager {
 
     public static List<Receta> cargarRecetas(String ruta, List<Medicamento> medicamentos) {
         List<Receta> recetas = new ArrayList<>();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
         try {
             File file = new File(ruta);
             if (!file.exists()) return recetas;
@@ -387,8 +390,6 @@ public class XmlManager {
             DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             Document doc = dBuilder.parse(file);
             NodeList lista = doc.getElementsByTagName("receta");
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
             for (int i = 0; i < lista.getLength(); i++) {
                 Element r = (Element) lista.item(i);
@@ -403,13 +404,22 @@ public class XmlManager {
                 receta.setEstado(estado);
 
                 if (r.getElementsByTagName("fechaProceso").getLength() > 0)
-                    receta.setFechaProceso(sdf.parse(r.getElementsByTagName("fechaProceso").item(0).getTextContent()));
+                    if (r.getElementsByTagName("fechaProceso").item(0).getTextContent() != null && !r.getElementsByTagName("fechaProceso").item(0).getTextContent().isEmpty()){
+                        receta.setFechaProceso(sdf.parse(r.getElementsByTagName("fechaProceso").item(0).getTextContent()));
+                    }else 
+                        receta.setFechaProceso(null);
 
                 if (r.getElementsByTagName("fechaLista").getLength() > 0)
-                    receta.setFechaLista(sdf.parse(r.getElementsByTagName("fechaLista").item(0).getTextContent()));
+                    if (r.getElementsByTagName("fechaLista").item(0).getTextContent() != null && !r.getElementsByTagName("fechaLista").item(0).getTextContent().isEmpty())
+                        receta.setFechaLista(sdf.parse(r.getElementsByTagName("fechaLista").item(0).getTextContent()));
+                    else
+                        receta.setFechaLista(null);
 
                 if (r.getElementsByTagName("fechaEntregada").getLength() > 0)
-                    receta.setFechaEntrega(sdf.parse(r.getElementsByTagName("fechaEntregada").item(0).getTextContent()));
+                    if (r.getElementsByTagName("fechaEntregada").item(0).getTextContent() != null && !r.getElementsByTagName("fechaEntregada").item(0).getTextContent().isEmpty())
+                        receta.setFechaEntrega(sdf.parse(r.getElementsByTagName("fechaEntregada").item(0).getTextContent()));
+                    else
+                        receta.setFechaEntrega(null);
 
                 // Paciente
                 NodeList pacNodes = r.getElementsByTagName("paciente");

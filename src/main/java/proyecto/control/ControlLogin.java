@@ -7,21 +7,28 @@ import javax.swing.JOptionPane;
 import proyecto.model.Farmaceuta;
 import proyecto.model.Medico;
 import proyecto.model.Usuario;
+import proyecto.model.Medicamento;
+import proyecto.model.Receta;
 import proyecto.persistencia.XmlManager;
 import proyecto.view.VentanaCambiarClave;
 import proyecto.view.VentanaMenuAdmin;
 import proyecto.view.VentanaMenuFarmaceuta;
 import proyecto.view.VentanaMenuMedico;
+import proyecto.control.ControlReceta;
 
 public class ControlLogin {
     private List<Usuario> usuarios;
     private List<Medico> medicos;
     private List<Farmaceuta> farmaceutas;
+    private List<Receta> recetas;
+    private List<Medicamento> medicamentos;
 
     public ControlLogin() {
         usuarios = XmlManager.cargarUsuarios("usuarios.xml");
         medicos = XmlManager.cargarMedicos("medicos.xml");
         farmaceutas = XmlManager.cargarFarmaceutas("farmaceutas.xml");
+        medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
+        recetas = XmlManager.cargarRecetas("recetas.xml", medicamentos);
     }
 
     public Usuario login(String id, String clave) {
@@ -62,7 +69,7 @@ public class ControlLogin {
     // Navegación: abrir la ventana correspondiente según el tipo de usuario
     public void postLogin(javax.swing.JFrame loginWindow, Usuario u) {
         if (u instanceof Medico) {
-            new VentanaMenuMedico((Medico) u).setVisible(true);
+            new VentanaMenuMedico((Medico) u, new ControlReceta(recetas)).setVisible(true);
         } else if (u instanceof Farmaceuta) {
             new VentanaMenuFarmaceuta((Farmaceuta) u).setVisible(true);
         } else {

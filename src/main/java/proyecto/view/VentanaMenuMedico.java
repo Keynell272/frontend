@@ -3,20 +3,17 @@ package proyecto.view;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.*;
-import java.util.Date;
+
+import proyecto.control.ControlReceta;
 import proyecto.model.*;
 
 public class VentanaMenuMedico extends JFrame {
     private Medico medicoLogueado;
+    private ControlReceta controlReceta;
 
     private JTextField txtFechaRetiro;
     private JButton btnBuscarPaciente, btnAgregarMedicamento;
@@ -24,10 +21,12 @@ public class VentanaMenuMedico extends JFrame {
     private JButton btnGuardar, btnLimpiar, btnDescartar, btnDetalles;
     private JLabel lblPaciente;
     private Paciente pacienteSeleccionado;
+    private List<Medicamento> cargarMedicamentos;
 
-    public VentanaMenuMedico(Medico medicoLogueado) {
+    public VentanaMenuMedico(Medico medicoLogueado, ControlReceta controlReceta) {
         this.medicoLogueado = medicoLogueado;
-        SDF_DMY.setLenient(false);
+        this.controlReceta = controlReceta;
+        this.cargarMedicamentos = controlReceta.getMedicamentos();
         init();
     }
 
@@ -45,33 +44,6 @@ public class VentanaMenuMedico extends JFrame {
         tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), new JPanel());
         tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
         add(tabbedPane);
-    }
-
-    private final SimpleDateFormat SDF_DMY = new SimpleDateFormat("dd/MM/yyyy");
-
-    private Date parseFechaFlexible(String s) {
-        if (s == null) return null;
-        String t = s.trim();
-        try { return SDF_DMY.parse(t); } catch (Exception ignore) {}
-        return null;
-    }
-    private Date soloFecha(Date d) throws Exception {
-        return SDF_DMY.parse(SDF_DMY.format(d));
-    }
-    private String generarSiguienteIdReceta(Document doc) {
-        NodeList nodes = doc.getElementsByTagName("receta");
-        int max = 0;
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Element r = (Element) nodes.item(i);
-            String id = r.getAttribute("id");
-            if (id != null && id.startsWith("R")) {
-                try {
-                    int n = Integer.parseInt(id.substring(1));
-                    if (n > max) max = n;
-                } catch (Exception ignored) {}
-            }
-        }
-        return String.format("R%03d", max + 1);
     }
 
     // ------------------ UTILS ------------------
@@ -153,7 +125,7 @@ public class VentanaMenuMedico extends JFrame {
 
         btnGuardar = new JButton("Guardar", cargarIcono("/imagenes/Guardar logo.png", 20, 20));
         btnGuardar.setBounds(20, 345, 120, 30);
-        btnGuardar.addActionListener(e -> guardarRecetaEnXML("recetas.xml"));
+        btnGuardar.addActionListener(e -> controlReceta.guardarReceta(pacienteSeleccionado, tablaMedicamentos, txtFechaRetiro));
         panelPrescribir.add(btnGuardar);
 
         btnLimpiar = new JButton("Limpiar", cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
@@ -213,7 +185,7 @@ public class VentanaMenuMedico extends JFrame {
 
     // ------------------ PACIENTES ------------------
     private void mostrarVentanaBuscarPaciente() {
-        List<Paciente> pacientes = cargarPacientesDesdeXML("pacientes.xml");
+        List<Paciente> pacientes = controlReceta.getPacientes();
 
         JDialog dialog = new JDialog(this, "Pacientes", true);
         dialog.setSize(600, 400);
@@ -276,33 +248,9 @@ public class VentanaMenuMedico extends JFrame {
         dialog.setVisible(true);
     }
 
-    private List<Paciente> cargarPacientesDesdeXML(String rutaArchivo) {
-        List<Paciente> lista = new ArrayList<>();
-        try {
-            File archivo = new File(rutaArchivo);
-            if (!archivo.exists()) return lista;
-
-            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = dBuilder.parse(archivo);
-            NodeList nList = doc.getElementsByTagName("paciente");
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-            for (int i = 0; i < nList.getLength(); i++) {
-                Element elem = (Element) nList.item(i);
-                lista.add(new Paciente(
-                        elem.getAttribute("id"),
-                        elem.getAttribute("nombre"),
-                        sdf.parse(elem.getAttribute("fechaNac")),
-                        elem.getAttribute("telefono")
-                ));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return lista;
-    }
-
     // ------------------ MEDICAMENTOS ------------------
     private void mostrarVentanaAgregarMedicamento() {
-        List<Medicamento> medicamentos = cargarMedicamentosDesdeXML("medicamentos.xml");
+        List<Medicamento> medicamentos = cargarMedicamentos;
 
         JDialog dialog = new JDialog(this, "Agregar Medicamento", true);
         dialog.setSize(500, 300);
@@ -359,153 +307,6 @@ public class VentanaMenuMedico extends JFrame {
 
         btnCancel.addActionListener(e -> dialog.dispose());
         dialog.setVisible(true);
-    }
-
-    private List<Medicamento> cargarMedicamentosDesdeXML(String rutaArchivo) {
-        List<Medicamento> lista = new ArrayList<>();
-        try {
-            File archivo = new File(rutaArchivo);
-            if (!archivo.exists()) return lista;
-
-            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = dBuilder.parse(archivo);
-            NodeList nList = doc.getElementsByTagName("medicamento");
-
-            for (int i = 0; i < nList.getLength(); i++) {
-                Element elem = (Element) nList.item(i);
-                lista.add(new Medicamento(
-                        elem.getAttribute("codigo"),
-                        elem.getAttribute("nombre"),
-                        elem.getAttribute("presentacion")
-                ));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return lista;
-    }
-
-    private void guardarRecetaEnXML(String rutaArchivo) {
-        if (pacienteSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un paciente.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (tablaMedicamentos.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe agregar al menos un medicamento.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        // validar que todos los campos de cada medicamento estén completos
-        for (int i = 0; i < tablaMedicamentos.getRowCount(); i++) {
-            for (int j = 0; j < tablaMedicamentos.getColumnCount(); j++) {
-                Object v = tablaMedicamentos.getValueAt(i, j);
-                if (v == null || v.toString().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this,
-                            "Debe llenar todos los campos de los medicamentos (fila " + (i + 1) + ").",
-                            "Advertencia", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-            }
-        }
-        // fecha de retiro obligatoria y válida
-        Date fechaRetiro = parseFechaFlexible(txtFechaRetiro.getText());
-        if (fechaRetiro == null) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha inválido (use dd/MM/yyyy).",
-                    "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            Date fechaConfeccion = soloFecha(new Date());
-            fechaRetiro = soloFecha(fechaRetiro);
-
-            // la fecha de retiro no puede ser anterior a la fecha de confección
-            if (fechaRetiro.before(fechaConfeccion)) {
-                JOptionPane.showMessageDialog(this,
-                        "La fecha de retiro no puede ser anterior a la fecha de confección (" +
-                        SDF_DMY.format(fechaConfeccion) + ").",
-                        "Advertencia", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc;
-            File archivo = new File(rutaArchivo);
-            Element raiz;
-
-            if (archivo.exists()) {
-                doc = builder.parse(archivo);
-                raiz = doc.getDocumentElement();
-            } else {
-                doc = builder.newDocument();
-                raiz = doc.createElement("recetas");
-                doc.appendChild(raiz);
-            }
-
-            String nuevoId = generarSiguienteIdReceta(doc);
-
-            Element recetaElem = doc.createElement("receta");
-            recetaElem.setAttribute("id", nuevoId);
-
-            // Estado inicial
-            Element estadoElem = doc.createElement("estado");
-            estadoElem.setTextContent("confeccionada");
-            recetaElem.appendChild(estadoElem);
-
-            // Fechas
-            Element fechaConfElem = doc.createElement("fechaConfeccion");
-            fechaConfElem.setTextContent(SDF_DMY.format(fechaConfeccion));
-            recetaElem.appendChild(fechaConfElem);
-
-            Element fechaRetElem = doc.createElement("fechaRetiro");
-            fechaRetElem.setTextContent(SDF_DMY.format(fechaRetiro));
-            recetaElem.appendChild(fechaRetElem);
-
-            Element fechaProcElem = doc.createElement("fechaProceso");
-            fechaProcElem.setTextContent(""); // vacío al inicio
-            recetaElem.appendChild(fechaProcElem);
-
-            Element fechaListaElem = doc.createElement("fechaLista");
-            fechaListaElem.setTextContent(""); // vacío al inicio
-            recetaElem.appendChild(fechaListaElem);
-
-            Element fechaEntElem = doc.createElement("fechaEntregada");
-            fechaEntElem.setTextContent(""); // vacío al inicio
-            recetaElem.appendChild(fechaEntElem);
-
-            // Paciente
-            Element pacienteElem = doc.createElement("paciente");
-            pacienteElem.setAttribute("id", pacienteSeleccionado.getId());
-            pacienteElem.setAttribute("nombre", pacienteSeleccionado.getNombre());
-            pacienteElem.setAttribute("telefono", pacienteSeleccionado.getTelefono());
-            recetaElem.appendChild(pacienteElem);
-
-            // Medicamentos
-            for (int i = 0; i < tablaMedicamentos.getRowCount(); i++) {
-                Element medElem = doc.createElement("medicamento");
-                medElem.setAttribute("nombre", tablaMedicamentos.getValueAt(i, 0).toString());
-                medElem.setAttribute("presentacion", tablaMedicamentos.getValueAt(i, 1).toString());
-                medElem.setAttribute("cantidad", tablaMedicamentos.getValueAt(i, 2).toString());
-                medElem.setAttribute("indicaciones", tablaMedicamentos.getValueAt(i, 3).toString());
-                medElem.setAttribute("duracion", tablaMedicamentos.getValueAt(i, 4).toString());
-                recetaElem.appendChild(medElem);
-            }
-
-            raiz.appendChild(recetaElem);
-
-            javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
-            javax.xml.transform.Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-            javax.xml.transform.dom.DOMSource source = new javax.xml.transform.dom.DOMSource(doc);
-            javax.xml.transform.stream.StreamResult result = new javax.xml.transform.stream.StreamResult(archivo);
-            transformer.transform(source, result);
-
-            JOptionPane.showMessageDialog(this, "Receta guardada exitosamente. ID: " + nuevoId);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al guardar receta.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 
     // ------------------ DETALLES ------------------

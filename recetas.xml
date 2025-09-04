@@ -1,35 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <recetas>
-        
     
     <receta id="R001">
-                
         <estado>confeccionada</estado>
-                
-        <fechaConfeccion>01/09/2025</fechaConfeccion>
-                
-        <fechaRetiro>10/08/2028</fechaRetiro>
-                
+        <fechaConfeccion>03/09/2025</fechaConfeccion>
+        <fechaRetiro>18/09/2025</fechaRetiro>
         <fechaProceso/>
-                
         <fechaLista/>
-                
         <fechaEntregada/>
-                
         <paciente id="1" nombre="1" telefono="1"/>
-                
-        <medicamento cantidad="1" duracion="1" indicaciones="1" nombre="1" presentacion="1"/>
-            
-    </receta>
-    
-    <receta id="R002">
-        <estado>confeccionada</estado>
-        <fechaConfeccion>02/09/2025</fechaConfeccion>
-        <fechaRetiro>16/09/2026</fechaRetiro>
-        <fechaProceso/>
-        <fechaLista/>
-        <fechaEntregada/>
-        <paciente id="3" nombre="3" telefono="3"/>
-        <medicamento cantidad="1" duracion="1" indicaciones="1" nombre="1" presentacion="1"/>
+        <medicamento cantidad="1" duracion="1" indicaciones="1" nombre="meta" presentacion="100mg"/>
     </receta>
 </recetas>

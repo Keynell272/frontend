@@ -6,63 +6,49 @@ import proyecto.model.Farmaceuta;
 import proyecto.model.Medicamento;
 import proyecto.model.Paciente;
 import proyecto.persistencia.XmlManager;
+import proyecto.control.ControlAdmin;
+import proyecto.model.DatePickerConNavegacion;
 import java.util.Date;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.text.SimpleDateFormat;
 
-
-import proyecto.model.DatePickerConNavegacion;
-
 public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
-    private DefaultTableModel modeloTabla;
+
+    private ControlAdmin controlAdmin;
+
     private List<Medico> medicos;
+    private DefaultTableModel modeloTabla;
     private JTable tabla;
     private JTextField txtBusquedaNombre;
     private JButton btnRestaurar;
-    private DefaultTableModel modeloTablaFarm;
-    private List<Farmaceuta> farmaceutas;  // si tenés clase Farmaceuta, usala aquí
-    private JTable tablaFarm;
-    private JTextField txtIdFarm, txtNombreFarm, txtBusquedaNombreFarm;
-    
-    private DefaultTableModel modeloTablaPac;
-    private List<Paciente> pacientes;
-    private JTable tablaPac;
-    private JTextField txtIdPac, txtNombrePac, txtTelefonoPac, txtBusquedaNombrePac;
-    private List<Medicamento> medicamentos;
-
-    // Campos de texto (para usarlos en guardar/limpiar)
     private JTextField txtId, txtNombre, txtEspecialidad;
 
-    private String formatearFecha(Date fecha) {
-        if (fecha == null) return "";
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        return sdf.format(fecha);
-    }
+    private List<Farmaceuta> farmaceutas;
+    private DefaultTableModel modeloTablaFarm;
+    private JTable tablaFarm;
+    private JTextField txtIdFarm, txtNombreFarm, txtBusquedaNombreFarm;
+
+    private List<Paciente> pacientes;
+    private DefaultTableModel modeloTablaPac;
+    private JTable tablaPac;
+    private JTextField txtIdPac, txtNombrePac, txtTelefonoPac, txtBusquedaNombrePac;
+
+    private List<Medicamento> medicamentos;
 
     public VentanaMenuAdmin(Usuario usuarioLogueado) {
         this.usuarioLogueado = usuarioLogueado;
-        this.medicos = XmlManager.cargarMedicos("medicos.xml"); // 🔹 cargar médicos desde XML
-        if (this.medicos == null) {
-            this.medicos = new ArrayList<>();
-        }
-        this.farmaceutas = XmlManager.cargarFarmaceutas("farmaceutas.xml");
-        if (this.farmaceutas == null) {
-            this.farmaceutas = new ArrayList<>();
-        }
-        this.pacientes = XmlManager.cargarPacientes("pacientes.xml");
-        if (this.pacientes == null) {
-            this.pacientes = new ArrayList<>();
-        }
-        this.medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
-        if (this.medicamentos == null) {
-            this.medicamentos = new ArrayList<>();
-        }
+
+        this.controlAdmin = new ControlAdmin();
+
+        this.medicos = controlAdmin.getMedicos();
+        this.farmaceutas = controlAdmin.getFarmaceutas();
+        this.pacientes = controlAdmin.getPacientes();
+        this.medicamentos = controlAdmin.getMedicamentos();
 
         init();
     }
@@ -115,7 +101,6 @@ public class VentanaMenuAdmin extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(null);
 
-        // Etiquetas y campos
         JLabel lblMedico = new JLabel("Médico");
         lblMedico.setFont(new Font("Arial", Font.BOLD, 12));
         lblMedico.setBounds(10, 10, 100, 20);
@@ -145,7 +130,6 @@ public class VentanaMenuAdmin extends JFrame {
         txtEspecialidad.setBounds(100, 100, 150, 25);
         panel.add(txtEspecialidad);
 
-        // Botones Guardar, Limpiar, Borrar
         JButton btnGuardar = new JButton("Guardar");
         btnGuardar.setBounds(320, 40, 100, 30);
         btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
@@ -156,14 +140,11 @@ public class VentanaMenuAdmin extends JFrame {
         btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
         panel.add(btnLimpiar);
 
-        btnLimpiar.addActionListener(e -> limpiarCampos());
-
         JButton btnBorrar = new JButton("Borrar");
         btnBorrar.setBounds(540, 40, 100, 30);
         btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
         panel.add(btnBorrar);
 
-        // Sección búsqueda
         JLabel lblBusqueda = new JLabel("Búsqueda");
         lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
         lblBusqueda.setBounds(10, 150, 100, 20);
@@ -186,13 +167,11 @@ public class VentanaMenuAdmin extends JFrame {
         btnRestaurar.setBounds(350, 180, 50, 30);
         panel.add(btnRestaurar);
 
-
         JButton btnReporte = new JButton("Reporte");
         btnReporte.setBounds(410, 180, 100, 30);
         btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
         panel.add(btnReporte);
 
-        // Tabla de médicos
         JLabel lblListado = new JLabel("Listado");
         lblListado.setFont(new Font("Arial", Font.BOLD, 12));
         lblListado.setBounds(10, 230, 100, 20);
@@ -201,27 +180,27 @@ public class VentanaMenuAdmin extends JFrame {
         String[] columnas = {"Id", "Nombre", "Especialidad"};
         modeloTabla = new DefaultTableModel(columnas, 0);
         tabla = new JTable(modeloTabla);
+
         JScrollPane scrollPane = new JScrollPane(tabla);
         scrollPane.setBounds(10, 260, 650, 300);
         panel.add(scrollPane);
 
+        // ===================== BORDES DE COMPONENTES =====================
         txtId.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         txtNombre.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         txtEspecialidad.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         txtBusquedaNombre.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         btnGuardar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnLimpiar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
-        btnBorrar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));        
+        btnBorrar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnBuscar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnRestaurar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnReporte.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
 
-        // 🔹 Cargar médicos desde XML al abrir
         for (Medico m : medicos) {
             modeloTabla.addRow(new Object[]{m.getId(), m.getNombre(), m.getEspecialidad()});
         }
 
-        // Acción Guardar
         btnGuardar.addActionListener(e -> {
             String id = txtId.getText().trim();
             String nombre = txtNombre.getText().trim();
@@ -232,19 +211,14 @@ public class VentanaMenuAdmin extends JFrame {
                 return;
             }
 
-            Medico m = new Medico(id, "123", nombre, especialidad); // clave por defecto
-            medicos.add(m);
-
-            // Tabla
+            Medico m = new Medico(id, "123", nombre, especialidad);
+            controlAdmin.agregarMedico(m);
             modeloTabla.addRow(new Object[]{m.getId(), m.getNombre(), m.getEspecialidad()});
-
-            // Guardar en XML
-            XmlManager.guardarMedicos(medicos, "medicos.xml");
+            controlAdmin.guardarMedicos();
 
             JOptionPane.showMessageDialog(this, "✅ Médico guardado con éxito");
-            limpiarCampos();
+            txtId.setText(""); txtNombre.setText(""); txtEspecialidad.setText("");
         });
-
         btnBorrar.addActionListener(e -> {
             int fila = tabla.getSelectedRow();
             if (fila == -1) {
@@ -253,19 +227,12 @@ public class VentanaMenuAdmin extends JFrame {
             }
 
             String id = (String) modeloTabla.getValueAt(fila, 0);
-
-            // quitar de la lista
-            medicos.removeIf(m -> m.getId().equals(id));
-
-            // quitar de la tabla
+            controlAdmin.eliminarMedico(id);
             modeloTabla.removeRow(fila);
-
-            // actualizar XML
-            XmlManager.guardarMedicos(medicos, "medicos.xml");
+            controlAdmin.guardarMedicos();
 
             JOptionPane.showMessageDialog(this, "✅ Médico eliminado");
         });
-
         btnBuscar.addActionListener(e -> {
             String nombreBuscar = txtBusquedaNombre.getText().trim().toLowerCase();
             if (nombreBuscar.isEmpty()) {
@@ -273,26 +240,20 @@ public class VentanaMenuAdmin extends JFrame {
                 return;
             }
 
-            // limpiar tabla
             modeloTabla.setRowCount(0);
 
-            // mostrar coincidencias
             for (Medico m : medicos) {
                 if (m.getNombre().toLowerCase().contains(nombreBuscar)) {
                     modeloTabla.addRow(new Object[]{m.getId(), m.getNombre(), m.getEspecialidad()});
                 }
             }
         });
-
         btnRestaurar.addActionListener(e -> {
-            // limpiar tabla
             modeloTabla.setRowCount(0);
-            // volver a cargar todos los médicos
             for (Medico m : medicos) {
                 modeloTabla.addRow(new Object[]{m.getId(), m.getNombre(), m.getEspecialidad()});
             }
         });
-        
         btnReporte.addActionListener(e -> {
             if (medicos.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No hay médicos para el reporte");
@@ -314,11 +275,14 @@ public class VentanaMenuAdmin extends JFrame {
 
             JOptionPane.showMessageDialog(this, scroll, "Reporte de Médicos", JOptionPane.INFORMATION_MESSAGE);
         });
-
+        btnLimpiar.addActionListener(e -> {
+            txtId.setText(""); txtNombre.setText(""); txtEspecialidad.setText("");
+        });
 
         return panel;
     }
 
+    // ===================== PANEL FARMACEUTAS =====================
     private JPanel crearPanelFarmaceutas() {
         JPanel panel = new JPanel();
         panel.setLayout(null);
@@ -344,7 +308,6 @@ public class VentanaMenuAdmin extends JFrame {
         txtNombreFarm.setBounds(100, 70, 150, 25);
         panel.add(txtNombreFarm);
 
-        // Botones
         JButton btnGuardar = new JButton("Guardar");
         btnGuardar.setBounds(320, 40, 100, 30);
         btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
@@ -360,7 +323,6 @@ public class VentanaMenuAdmin extends JFrame {
         btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
         panel.add(btnBorrar);
 
-        // Búsqueda
         JLabel lblBusqueda = new JLabel("Búsqueda");
         lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
         lblBusqueda.setBounds(10, 150, 100, 20);
@@ -378,7 +340,7 @@ public class VentanaMenuAdmin extends JFrame {
         btnBuscar.setBounds(240, 180, 100, 30);
         btnBuscar.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
         panel.add(btnBuscar);
-        
+
         JButton btnRestaurar = new JButton("⟳");
         btnRestaurar.setBounds(350, 180, 50, 30);
         panel.add(btnRestaurar);
@@ -388,9 +350,6 @@ public class VentanaMenuAdmin extends JFrame {
         btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
         panel.add(btnReporte);
 
-        
-
-        // Tabla
         JLabel lblListado = new JLabel("Listado");
         lblListado.setFont(new Font("Arial", Font.BOLD, 12));
         lblListado.setBounds(10, 230, 100, 20);
@@ -408,17 +367,15 @@ public class VentanaMenuAdmin extends JFrame {
         txtBusquedaNombreFarm.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         btnGuardar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnLimpiar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
-        btnBorrar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));        
+        btnBorrar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnBuscar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnRestaurar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         btnReporte.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
 
-        // Cargar farmaceutas desde XML
         for (Farmaceuta f : farmaceutas) {
             modeloTablaFarm.addRow(new Object[]{f.getId(), f.getNombre()});
         }
 
-        // Acciones
         btnGuardar.addActionListener(e -> {
             String id = txtIdFarm.getText().trim();
             String nombre = txtNombreFarm.getText().trim();
@@ -429,31 +386,27 @@ public class VentanaMenuAdmin extends JFrame {
             }
 
             Farmaceuta f = new Farmaceuta(id, "123", nombre);
-            farmaceutas.add(f);
+            controlAdmin.agregarFarmaceuta(f);
             modeloTablaFarm.addRow(new Object[]{f.getId(), f.getNombre()});
-            XmlManager.guardarFarmaceutas(farmaceutas, "farmaceutas.xml");
+            controlAdmin.guardarFarmaceutas();
 
             JOptionPane.showMessageDialog(this, "✅ Farmacéuta guardado con éxito");
-            txtIdFarm.setText(""); txtNombreFarm.setText(""); 
-        });
-
-        btnLimpiar.addActionListener(e -> {
             txtIdFarm.setText(""); txtNombreFarm.setText("");
         });
-
         btnBorrar.addActionListener(e -> {
             int fila = tablaFarm.getSelectedRow();
             if (fila == -1) {
-                JOptionPane.showMessageDialog(this, "Seleccione un farmacéuta");
+                JOptionPane.showMessageDialog(this, "Seleccione un farmacéuta en la tabla para borrar");
                 return;
             }
+
             String id = (String) modeloTablaFarm.getValueAt(fila, 0);
-            farmaceutas.removeIf(f -> f.getId().equals(id));
-            modeloTablaFarm.removeRow(fila);
-            XmlManager.guardarFarmaceutas(farmaceutas, "farmaceutas.xml");
+            controlAdmin.eliminarFarmaceuta(id);
+            modeloTabla.removeRow(fila);
+            controlAdmin.guardarFarmaceutas();
+
             JOptionPane.showMessageDialog(this, "✅ Farmacéuta eliminado");
         });
-
         btnBuscar.addActionListener(e -> {
             String buscar = txtBusquedaNombreFarm.getText().trim().toLowerCase();
             modeloTablaFarm.setRowCount(0);
@@ -463,14 +416,12 @@ public class VentanaMenuAdmin extends JFrame {
                 }
             }
         });
-
         btnRestaurar.addActionListener(e -> {
             modeloTablaFarm.setRowCount(0);
             for (Farmaceuta f : farmaceutas) {
                 modeloTablaFarm.addRow(new Object[]{f.getId(), f.getNombre()});
             }
         });
-
         btnReporte.addActionListener(e -> {
             StringBuilder sb = new StringBuilder("=== Reporte de Farmacéutas ===\n\n");
             for (Farmaceuta f : farmaceutas) {
@@ -484,10 +435,14 @@ public class VentanaMenuAdmin extends JFrame {
             sp.setPreferredSize(new Dimension(500, 300));
             JOptionPane.showMessageDialog(this, sp, "Reporte de Farmacéutas", JOptionPane.INFORMATION_MESSAGE);
         });
+        btnLimpiar.addActionListener(e -> {
+            txtIdFarm.setText(""); txtNombreFarm.setText("");
+        });
 
         return panel;
     }
 
+    // ===================== PANEL PACIENTES =====================
     private JPanel crearPanelPacientes() {
         JPanel panel = new JPanel();
         panel.setLayout(null);
@@ -684,6 +639,181 @@ public class VentanaMenuAdmin extends JFrame {
         return panel;
     }
 
+    // ===================== PANEL MEDICAMENTOS =====================
+    private JPanel crearPanelMedicamentos() {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+
+        JLabel lblTitulo = new JLabel("Medicamento");
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 12));
+        lblTitulo.setBounds(10, 10, 100, 20);
+        panel.add(lblTitulo);
+
+        JLabel lblCodigo = new JLabel("Código");
+        lblCodigo.setBounds(10, 40, 50, 20);
+        panel.add(lblCodigo);
+
+        JTextField txtCodigo = new JTextField();
+        txtCodigo.setBounds(100, 40, 150, 25);
+        panel.add(txtCodigo);
+
+        JLabel lblNombre = new JLabel("Nombre");
+        lblNombre.setBounds(10, 70, 50, 20);
+        panel.add(lblNombre);
+
+        JTextField txtNombre = new JTextField();
+        txtNombre.setBounds(100, 70, 150, 25);
+        panel.add(txtNombre);
+
+        JLabel lblPresentacion = new JLabel("Presentación");
+        lblPresentacion.setBounds(10, 100, 100, 20);
+        panel.add(lblPresentacion);
+
+        JTextField txtPresentacion = new JTextField();
+        txtPresentacion.setBounds(100, 100, 150, 25);
+        panel.add(txtPresentacion);
+
+        JButton btnGuardar = new JButton("Guardar");
+        btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
+        btnGuardar.setBounds(320, 40, 100, 30);
+        panel.add(btnGuardar);
+
+        JButton btnLimpiar = new JButton("Limpiar");
+        btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
+        btnLimpiar.setBounds(430, 40, 100, 30);
+        panel.add(btnLimpiar);
+
+        JButton btnBorrar = new JButton("Borrar");
+        btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
+        btnBorrar.setBounds(540, 40, 100, 30);
+        panel.add(btnBorrar);
+
+        JLabel lblBusqueda = new JLabel("Búsqueda");
+        lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
+        lblBusqueda.setBounds(10, 150, 100, 20);
+        panel.add(lblBusqueda);
+
+        JLabel lblBusquedaNombre = new JLabel("Nombre");
+        lblBusquedaNombre.setBounds(10, 180, 60, 20);
+        panel.add(lblBusquedaNombre);
+
+        JTextField txtBusquedaNombre = new JTextField();
+        txtBusquedaNombre.setBounds(80, 180, 150, 25);
+        panel.add(txtBusquedaNombre);
+
+        JButton btnBuscar = new JButton("Buscar");
+        btnBuscar.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
+        btnBuscar.setBounds(240, 180, 100, 30);
+        panel.add(btnBuscar);
+
+        JButton btnRestaurar = new JButton("⟳");
+        btnRestaurar.setBounds(350, 180, 50, 30);
+        panel.add(btnRestaurar);
+
+        JButton btnReporte = new JButton("Reporte");
+        btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
+        btnReporte.setBounds(410, 180, 100, 30);
+        panel.add(btnReporte);
+
+        JLabel lblListado = new JLabel("Listado");
+        lblListado.setFont(new Font("Arial", Font.BOLD, 12));
+        lblListado.setBounds(10, 230, 100, 20);
+        panel.add(lblListado);
+
+        String[] columnas = {"Código", "Nombre", "Presentación"};
+        DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0);
+        JTable tabla = new JTable(modeloTabla);
+        JScrollPane scrollPane = new JScrollPane(tabla);
+        scrollPane.setBounds(10, 260, 650, 300);
+        panel.add(scrollPane);
+
+        for (Medicamento med : medicamentos) {
+            modeloTabla.addRow(new Object[]{med.getCodigo(), med.getNombre(), med.getPresentacion()});
+        }
+
+        btnGuardar.addActionListener(e -> {
+            String codigo = txtCodigo.getText().trim();
+            String nombre = txtNombre.getText().trim();
+            String presentacion = txtPresentacion.getText().trim();
+
+            if (codigo.isEmpty() || nombre.isEmpty() || presentacion.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Debe llenar todos los campos");
+                return;
+            }
+
+            Medicamento med = new Medicamento(codigo, nombre, presentacion);
+            controlAdmin.agregarMedicamento(med);
+            modeloTabla.addRow(new Object[]{med.getCodigo(), med.getNombre(), med.getPresentacion()});
+            controlAdmin.guardarMedicamentos();
+
+            JOptionPane.showMessageDialog(this, "✅ Medicamento guardado con éxito");
+            txtCodigo.setText("");txtNombre.setText("");txtPresentacion.setText("");
+        });
+        btnBorrar.addActionListener(e -> {
+            int fila = tabla.getSelectedRow();
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this, "Seleccione un medicamento en la tabla para borrar");
+                return;
+            }
+
+            String codigo = (String) modeloTabla.getValueAt(fila, 0);
+            controlAdmin.eliminarMedicamento(codigo);
+            modeloTabla.removeRow(fila);
+            controlAdmin.guardarMedicamentos();
+
+            JOptionPane.showMessageDialog(this, "✅ Medicamento eliminado");
+        });
+        btnBuscar.addActionListener(e -> {
+            String nombreBuscar = txtBusquedaNombre.getText().trim().toLowerCase();
+            if (nombreBuscar.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Ingrese un nombre para buscar");
+                return;
+            }
+
+            modeloTabla.setRowCount(0);
+
+            for (Medicamento m : medicamentos) {
+                if (m.getNombre().toLowerCase().contains(nombreBuscar)) {
+                    modeloTabla.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
+                }
+            }
+        });
+        btnRestaurar.addActionListener(e -> {
+            modeloTabla.setRowCount(0);
+            for (Medicamento m : medicamentos) {
+                modeloTabla.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
+            }
+        });
+        btnReporte.addActionListener(e -> {
+            if (medicamentos.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay medicamentos para el reporte");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder("=== Reporte de Medicamentos ===\n\n");
+            for (Medicamento m : medicamentos) {
+                sb.append("Código: ").append(m.getCodigo())
+                .append(" | Nombre: ").append(m.getNombre())
+                .append(" | Presentación: ").append(m.getPresentacion())
+                .append("\n");
+            }
+
+            JTextArea area = new JTextArea(sb.toString());
+            area.setEditable(false);
+            JScrollPane scroll = new JScrollPane(area);
+            scroll.setPreferredSize(new Dimension(500, 300));
+
+            JOptionPane.showMessageDialog(this, scroll, "Reporte de Medicamentos", JOptionPane.INFORMATION_MESSAGE);
+        });
+        btnLimpiar.addActionListener(e -> {
+            txtCodigo.setText("");
+            txtNombre.setText("");
+            txtPresentacion.setText("");
+        });
+        return panel;
+    }
+    
+    // ===================== PANEL ACERCA DE =====================
     private JPanel crearPanelAcercaDe() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -718,202 +848,6 @@ public class VentanaMenuAdmin extends JFrame {
         return panel;
     }
 
-    private JPanel crearPanelMedicamentos() {
-        JPanel panel = new JPanel();
-        panel.setLayout(null);
-
-        // Etiquetas y campos
-        JLabel lblTitulo = new JLabel("Medicamento");
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 12));
-        lblTitulo.setBounds(10, 10, 100, 20);
-        panel.add(lblTitulo);
-
-        JLabel lblCodigo = new JLabel("Código");
-        lblCodigo.setBounds(10, 40, 50, 20);
-        panel.add(lblCodigo);
-
-        JTextField txtCodigo = new JTextField();
-        txtCodigo.setBounds(100, 40, 150, 25);
-        panel.add(txtCodigo);
-
-        JLabel lblNombre = new JLabel("Nombre");
-        lblNombre.setBounds(10, 70, 50, 20);
-        panel.add(lblNombre);
-
-        JTextField txtNombre = new JTextField();
-        txtNombre.setBounds(100, 70, 150, 25);
-        panel.add(txtNombre);
-
-        JLabel lblPresentacion = new JLabel("Presentación");
-        lblPresentacion.setBounds(10, 100, 100, 20);
-        panel.add(lblPresentacion);
-
-        JTextField txtPresentacion = new JTextField();
-        txtPresentacion.setBounds(100, 100, 150, 25);
-        panel.add(txtPresentacion);
-
-        // Botones
-        JButton btnGuardar = new JButton("Guardar");
-        btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
-        btnGuardar.setBounds(320, 40, 100, 30);
-        panel.add(btnGuardar);
-
-        JButton btnLimpiar = new JButton("Limpiar");
-        btnLimpiar.setIcon(cargarIcono("/imagenes/Limpiar logo.png", 20, 20));
-        btnLimpiar.setBounds(430, 40, 100, 30);
-        panel.add(btnLimpiar);
-
-        JButton btnBorrar = new JButton("Borrar");
-        btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
-        btnBorrar.setBounds(540, 40, 100, 30);
-        panel.add(btnBorrar);
-
-        // Búsqueda
-        JLabel lblBusqueda = new JLabel("Búsqueda");
-        lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
-        lblBusqueda.setBounds(10, 150, 100, 20);
-        panel.add(lblBusqueda);
-
-        JLabel lblBusquedaNombre = new JLabel("Nombre");
-        lblBusquedaNombre.setBounds(10, 180, 60, 20);
-        panel.add(lblBusquedaNombre);
-
-        JTextField txtBusquedaNombre = new JTextField();
-        txtBusquedaNombre.setBounds(80, 180, 150, 25);
-        panel.add(txtBusquedaNombre);
-
-        JButton btnBuscar = new JButton("Buscar");
-        btnBuscar.setIcon(cargarIcono("/imagenes/Lupa de buscar logo.png", 20, 20));
-        btnBuscar.setBounds(240, 180, 100, 30);
-        panel.add(btnBuscar);
-
-        JButton btnRestaurar = new JButton("⟳");
-        btnRestaurar.setBounds(350, 180, 50, 30);
-        panel.add(btnRestaurar);
-
-        JButton btnReporte = new JButton("Reporte");
-        btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
-        btnReporte.setBounds(410, 180, 100, 30);
-        panel.add(btnReporte);
-
-        // Tabla de medicamentos
-        JLabel lblListado = new JLabel("Listado");
-        lblListado.setFont(new Font("Arial", Font.BOLD, 12));
-        lblListado.setBounds(10, 230, 100, 20);
-        panel.add(lblListado);
-
-        String[] columnas = {"Código", "Nombre", "Presentación"};
-        DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0);
-        JTable tabla = new JTable(modeloTabla);
-        JScrollPane scrollPane = new JScrollPane(tabla);
-        scrollPane.setBounds(10, 260, 650, 300);
-        panel.add(scrollPane);
-
-        // Cargar medicamentos desde XML
-        for (Medicamento med : medicamentos) {
-            modeloTabla.addRow(new Object[]{med.getCodigo(), med.getNombre(), med.getPresentacion()});
-        }
-
-        // Funcionalidades
-        btnGuardar.addActionListener(e -> {
-            String codigo = txtCodigo.getText().trim();
-            String nombre = txtNombre.getText().trim();
-            String presentacion = txtPresentacion.getText().trim();
-
-            if (codigo.isEmpty() || nombre.isEmpty() || presentacion.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Debe llenar todos los campos");
-                return;
-            }
-
-            Medicamento med = new Medicamento(codigo, nombre, presentacion);
-            medicamentos.add(med);
-
-            modeloTabla.addRow(new Object[]{med.getCodigo(), med.getNombre(), med.getPresentacion()});
-
-            XmlManager.guardarMedicamentos(medicamentos, "medicamentos.xml");
-
-            JOptionPane.showMessageDialog(this, "✅ Medicamento guardado con éxito");
-            txtCodigo.setText("");
-            txtNombre.setText("");
-            txtPresentacion.setText("");
-        });
-
-        btnLimpiar.addActionListener(e -> {
-            txtCodigo.setText("");
-            txtNombre.setText("");
-            txtPresentacion.setText("");
-        });
-
-        btnBorrar.addActionListener(e -> {
-            int fila = tabla.getSelectedRow();
-            if (fila == -1) {
-                JOptionPane.showMessageDialog(this, "Seleccione un medicamento en la tabla para borrar");
-                return;
-            }
-
-            String codigo = (String) modeloTabla.getValueAt(fila, 0);
-            medicamentos.removeIf(m -> m.getCodigo().equals(codigo));
-            modeloTabla.removeRow(fila);
-
-            XmlManager.guardarMedicamentos(medicamentos, "medicamentos.xml");
-
-            JOptionPane.showMessageDialog(this, "✅ Medicamento eliminado");
-        });
-
-        btnBuscar.addActionListener(e -> {
-            String nombreBuscar = txtBusquedaNombre.getText().trim().toLowerCase();
-            if (nombreBuscar.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Ingrese un nombre para buscar");
-                return;
-            }
-
-            modeloTabla.setRowCount(0);
-
-            for (Medicamento m : medicamentos) {
-                if (m.getNombre().toLowerCase().contains(nombreBuscar)) {
-                    modeloTabla.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
-                }
-            }
-        });
-
-        btnRestaurar.addActionListener(e -> {
-            modeloTabla.setRowCount(0);
-            for (Medicamento m : medicamentos) {
-                modeloTabla.addRow(new Object[]{m.getCodigo(), m.getNombre(), m.getPresentacion()});
-            }
-        });
-
-        btnReporte.addActionListener(e -> {
-            if (medicamentos.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "No hay medicamentos para el reporte");
-                return;
-            }
-
-            StringBuilder sb = new StringBuilder("=== Reporte de Medicamentos ===\n\n");
-            for (Medicamento m : medicamentos) {
-                sb.append("Código: ").append(m.getCodigo())
-                .append(" | Nombre: ").append(m.getNombre())
-                .append(" | Presentación: ").append(m.getPresentacion())
-                .append("\n");
-            }
-
-            JTextArea area = new JTextArea(sb.toString());
-            area.setEditable(false);
-            JScrollPane scroll = new JScrollPane(area);
-            scroll.setPreferredSize(new Dimension(500, 300));
-
-            JOptionPane.showMessageDialog(this, scroll, "Reporte de Medicamentos", JOptionPane.INFORMATION_MESSAGE);
-        });
-
-        return panel;
-    }
-
-    private void limpiarCampos() {
-        txtId.setText("");
-        txtNombre.setText("");
-        txtEspecialidad.setText("");
-    }
-
     private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
         URL url = getClass().getResource(ruta);
         if (url == null) {
@@ -923,5 +857,11 @@ public class VentanaMenuAdmin extends JFrame {
         ImageIcon iconoOriginal = new ImageIcon(url);
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
+    }
+    
+    private String formatearFecha(Date fecha) {
+        if (fecha == null) return "";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        return sdf.format(fecha);
     }
 }

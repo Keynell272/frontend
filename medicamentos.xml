@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <medicamentos>
-    <medicamento codigo="1" nombre="1" presentacion="1"/>
-    <medicamento codigo="1" nombre="1" presentacion="1"/>
+    <medicamento codigo="111" nombre="meta" presentacion="100mg"/>
 </medicamentos>
