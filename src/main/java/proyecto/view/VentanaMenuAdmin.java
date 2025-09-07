@@ -14,19 +14,24 @@ import java.awt.*;
 import java.net.URL;
 import java.util.List;
 import java.text.SimpleDateFormat;
+import proyecto.view.DashboardPanel;
+import proyecto.model.Receta;
+import proyecto.control.ControlReceta;
 
 public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
 
     private ControlAdmin controlAdmin;
-
+    private List<Receta> recetas;
     private List<Medico> medicos;
     private DefaultTableModel modeloTabla;
     private JTable tabla;
     private JTextField txtBusquedaNombre;
     private JButton btnRestaurar;
     private JTextField txtId, txtNombre, txtEspecialidad;
-
+    
+    private ControlReceta controlReceta;
+    
     private List<Farmaceuta> farmaceutas;
     private DefaultTableModel modeloTablaFarm;
     private JTable tablaFarm;
@@ -42,8 +47,9 @@ public class VentanaMenuAdmin extends JFrame {
     public VentanaMenuAdmin(Usuario usuarioLogueado) {
         this.usuarioLogueado = usuarioLogueado;
 
+        this.controlReceta = new ControlReceta(recetas);
         this.controlAdmin = new ControlAdmin();
-
+        this.recetas = controlReceta.getRecetas();
         this.medicos = controlAdmin.getMedicos();
         this.farmaceutas = controlAdmin.getFarmaceutas();
         this.pacientes = controlAdmin.getPacientes();
@@ -75,7 +81,7 @@ public class VentanaMenuAdmin extends JFrame {
         JPanel panelMedicamentos = crearPanelMedicamentos();
         panelMedicamentos.add(new JLabel("Medicamentos"));
 
-        JPanel panelDashboard = new JPanel();
+        JPanel panelDashboard = new DashboardPanel(recetas, medicamentos);
         panelDashboard.add(new JLabel("Dashboard"));
 
         JPanel panelHistorico = new JPanel();
