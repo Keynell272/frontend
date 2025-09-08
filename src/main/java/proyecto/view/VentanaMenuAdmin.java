@@ -2,11 +2,15 @@ package proyecto.view;
 
 import proyecto.model.Medico;
 import proyecto.model.Usuario;
+import proyecto.persistencia.XmlManager;
 import proyecto.model.Farmaceuta;
 import proyecto.model.Medicamento;
 import proyecto.model.Paciente;
 import proyecto.control.ControlAdmin;
+import proyecto.control.ControlReceta;
 import proyecto.model.DatePickerConNavegacion;
+import proyecto.model.Receta;
+import proyecto.view.DashboardPanel;
 import java.util.Date;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -19,6 +23,8 @@ public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
 
     private ControlAdmin controlAdmin;
+    private ControlReceta controlReceta;
+
 
     private List<Medico> medicos;
     private DefaultTableModel modeloTabla;
@@ -38,16 +44,19 @@ public class VentanaMenuAdmin extends JFrame {
     private JTextField txtIdPac, txtNombrePac, txtTelefonoPac, txtBusquedaNombrePac;
 
     private List<Medicamento> medicamentos;
+    private List<Receta> recetas;
 
     public VentanaMenuAdmin(Usuario usuarioLogueado) {
         this.usuarioLogueado = usuarioLogueado;
 
         this.controlAdmin = new ControlAdmin();
+        this.controlReceta = new ControlReceta(recetas);
 
         this.medicos = controlAdmin.getMedicos();
         this.farmaceutas = controlAdmin.getFarmaceutas();
         this.pacientes = controlAdmin.getPacientes();
         this.medicamentos = controlAdmin.getMedicamentos();
+        this.recetas = controlReceta.getRecetas();
 
         init();
     }
@@ -75,8 +84,7 @@ public class VentanaMenuAdmin extends JFrame {
         JPanel panelMedicamentos = crearPanelMedicamentos();
         panelMedicamentos.add(new JLabel("Medicamentos"));
 
-        JPanel panelDashboard = new JPanel();
-        panelDashboard.add(new JLabel("Dashboard"));
+        JPanel panelDashboard = new DashboardPanel(recetas, medicamentos);
 
         JPanel panelHistorico = new JPanel();
         panelHistorico.add(new JLabel("Histórico"));

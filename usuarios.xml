@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <usuarios>
-    <usuario clave="123" id="admin" nombre="Administrador General" tipo="Administrador"/>
+    <usuario clave="admin" id="admin" nombre="Administrador General" tipo="Administrador"/>
 </usuarios>

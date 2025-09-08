@@ -10,10 +10,13 @@ import java.util.List;
 
 import proyecto.model.*;
 import proyecto.control.*;
+import proyecto.view.DashboardPanel;
 
 public class VentanaMenuFarmaceuta extends JFrame {
     private Farmaceuta farmaceutaLogueado;
     private ControlReceta controlReceta;
+    private List<Receta> recetas;
+    private List<Medicamento> medicamentos;
 
     private JTable tablaRecetas;
     private DefaultTableModel modeloTabla;
@@ -21,6 +24,8 @@ public class VentanaMenuFarmaceuta extends JFrame {
     public VentanaMenuFarmaceuta(Farmaceuta farmaceutaLogueado, ControlReceta controlReceta) {
         this.farmaceutaLogueado = farmaceutaLogueado;
         this.controlReceta = controlReceta;
+        this.recetas = controlReceta.getRecetas();
+        this.medicamentos = controlReceta.getMedicamentos();
         init();
     }
 
@@ -75,6 +80,11 @@ public class VentanaMenuFarmaceuta extends JFrame {
         return panel;
     }
 
+    // ------------------ PANEL DASHBOARD ------------------ 
+    private JPanel crearPanelDashboard() {
+        return new DashboardPanel(recetas, medicamentos);
+    }
+
     // ------------------ PANEL HISTORICO ------------------
     private JPanel crearPanelHistorico() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -121,16 +131,6 @@ public class VentanaMenuFarmaceuta extends JFrame {
         subPanel.add(lblInfo);
         panel.add(subPanel, BorderLayout.SOUTH);
 
-        return panel;
-    }
-
-    // ------------------ PANEL DASHBOARD ------------------
-    private JPanel crearPanelDashboard() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel lblTitulo = new JLabel("Dashboard - Próximamente", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
-        lblTitulo.setForeground(Color.BLUE);
-        panel.add(lblTitulo, BorderLayout.CENTER);
         return panel;
     }
 

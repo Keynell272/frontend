@@ -2,6 +2,7 @@ package proyecto.control;
 
 import proyecto.model.*;
 import proyecto.persistencia.XmlManager;
+import proyecto.model.Medicamento;
 
 import java.io.File;
 import java.util.*;
@@ -19,9 +20,16 @@ import org.w3c.dom.Element;
 
 public class ControlReceta {
     private List<Receta> recetas;
+    private List<Medicamento> medicamentos;
 
     public ControlReceta(List<Receta> recetas) {
         this.recetas = recetas;
+        this.medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
+
+    }
+    
+    public List<Receta> getRecetas() {
+        return XmlManager.cargarRecetas("recetas.xml", medicamentos);
     }
     
     private static final SimpleDateFormat SDF_DMY = new SimpleDateFormat("dd/MM/yyyy");
@@ -188,10 +196,6 @@ public class ControlReceta {
         return result;
     }
 
-    public List<Receta> getRecetas() {
-        return recetas;
-    }
-
     public List<Medicamento> getMedicamentos() {
         List<Medicamento> lista = new ArrayList<>();
         try {
@@ -229,10 +233,14 @@ public class ControlReceta {
 
         if (hoy.before(fechaRetiro)) {
             return "anticipado"; 
-        } else if (hoy.after(fechaRetiro)) {
+        } 
+        if(hoy.after(fechaRetiro)) {
             return "atrasado";   
+        } 
+        if (hoy.equals(fechaRetiro)) {
+            return "normal";
         } else {
-            return "normal";    
+            return "error"; 
         }
     }
     public Receta buscarPorId(String id) {
