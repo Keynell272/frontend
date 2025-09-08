@@ -2,7 +2,7 @@ package proyecto.control;
 
 import proyecto.model.*;
 import proyecto.persistencia.XmlManager;
-
+import proyecto.model.Medicamento;
 import java.io.File;
 import java.util.*;
 
@@ -19,9 +19,10 @@ import org.w3c.dom.Element;
 
 public class ControlReceta {
     private List<Receta> recetas;
-
+    private List<Medicamento> medicamentos;
     public ControlReceta(List<Receta> recetas) {
         this.recetas = recetas;
+        this.medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
     }
     
     private static final SimpleDateFormat SDF_DMY = new SimpleDateFormat("dd/MM/yyyy");
@@ -189,7 +190,7 @@ public class ControlReceta {
     }
 
     public List<Receta> getRecetas() {
-        return recetas;
+        return XmlManager.cargarRecetas("recetas.xml", medicamentos);
     }
 
     public List<Medicamento> getMedicamentos() {

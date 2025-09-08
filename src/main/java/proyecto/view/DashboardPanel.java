@@ -142,8 +142,11 @@ public class DashboardPanel extends JPanel {
         // ----- Centro y derecha: gráficos -----
         graficoLineas = new PanelLineas();
         graficoLineas.setBorder(BorderFactory.createTitledBorder("Medicamentos"));
+        graficoLineas.setPreferredSize(new Dimension(50, 150));
         graficoPastel = new PanelPastel();
         graficoPastel.setBorder(BorderFactory.createTitledBorder("Recetas"));
+        graficoPastel.setPreferredSize(new Dimension(50, 150));
+        graficoLineas.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
 
         JPanel centro = new JPanel(new GridLayout(1,2,8,8));
         centro.add(graficoLineas);
@@ -209,6 +212,10 @@ public class DashboardPanel extends JPanel {
 
         // Pastel
         graficoPastel.setDatos(control.recetasPorEstado());
+        graficoLineas.revalidate();
+        graficoLineas.repaint();
+        graficoPastel.revalidate();
+        graficoPastel.repaint();
     }
 
     // -------- helpers --------

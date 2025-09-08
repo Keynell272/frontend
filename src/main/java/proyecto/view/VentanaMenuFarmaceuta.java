@@ -7,20 +7,25 @@ import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-
+import proyecto.view.DashboardPanel;
 import proyecto.model.*;
 import proyecto.control.*;
 
 public class VentanaMenuFarmaceuta extends JFrame {
     private Farmaceuta farmaceutaLogueado;
     private ControlReceta controlReceta;
-
+    private ControlAdmin controlAdmin;
+    private List<Receta> recetas;
+    private List<Medicamento> medicamentos;
     private JTable tablaRecetas;
     private DefaultTableModel modeloTabla;
 
     public VentanaMenuFarmaceuta(Farmaceuta farmaceutaLogueado, ControlReceta controlReceta) {
         this.farmaceutaLogueado = farmaceutaLogueado;
         this.controlReceta = controlReceta;
+        this.controlAdmin = new ControlAdmin();
+        this.recetas = controlReceta.getRecetas();
+        this.medicamentos = controlAdmin.getMedicamentos();
         init();
     }
 
@@ -33,7 +38,7 @@ public class VentanaMenuFarmaceuta extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Administrar Recetas", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelFarmaceuta());
-        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), crearPanelDashboard());
+        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), new DashboardPanel(recetas, medicamentos));
         tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), crearPanelHistorico());
         tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
 

@@ -10,7 +10,7 @@ public class Medicamento {
         this.nombre = nombre;
         this.presentacion = presentacion;
     }
-
+    
     // Getters
     public String getCodigo() {
         return codigo;

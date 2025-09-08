@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 import proyecto.view.DashboardPanel;
 import proyecto.model.Receta;
 import proyecto.control.ControlReceta;
+import proyecto.persistencia.XmlManager;
+
 
 public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
@@ -82,7 +84,7 @@ public class VentanaMenuAdmin extends JFrame {
         panelMedicamentos.add(new JLabel("Medicamentos"));
 
         JPanel panelDashboard = new DashboardPanel(recetas, medicamentos);
-        panelDashboard.add(new JLabel("Dashboard"));
+
 
         JPanel panelHistorico = new JPanel();
         panelHistorico.add(new JLabel("Histórico"));

@@ -25,7 +25,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
-
+import proyecto.view.DashboardPanel;
+import proyecto.model.Receta;
 import proyecto.control.ControlReceta;
 import proyecto.model.DatePickerConNavegacion;
 import proyecto.model.Medicamento;
@@ -35,7 +36,7 @@ import proyecto.model.Paciente;
 public class VentanaMenuMedico extends JFrame {
     private Medico medicoLogueado;
     private ControlReceta controlReceta;
-
+    private List<Receta> recetas;
     private JTextField txtFechaRetiro;
     private JButton btnBuscarPaciente, btnAgregarMedicamento;
     private JTable tablaMedicamentos;
@@ -48,6 +49,7 @@ public class VentanaMenuMedico extends JFrame {
         this.medicoLogueado = medicoLogueado;
         this.controlReceta = controlReceta;
         this.cargarMedicamentos = controlReceta.getMedicamentos();
+        this.recetas = controlReceta.getRecetas();
         init();
     }
 
@@ -61,7 +63,7 @@ public class VentanaMenuMedico extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelPrescribir());
-        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), new JPanel());
+        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), new DashboardPanel(recetas, cargarMedicamentos));
         tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), new JPanel());
         tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
         add(tabbedPane);
