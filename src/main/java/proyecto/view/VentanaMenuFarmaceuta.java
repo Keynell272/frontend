@@ -9,8 +9,10 @@ import java.util.Date;
 import java.util.List;
 
 import proyecto.model.*;
+import proyecto.view.paneles.generales.DashboardPanel;
+import proyecto.view.paneles.generales.PanelHistorico;
+import proyecto.view.paneles.generales.PanelAcercaDe;
 import proyecto.control.*;
-import proyecto.view.DashboardPanel;
 
 public class VentanaMenuFarmaceuta extends JFrame {
     private Farmaceuta farmaceutaLogueado;
@@ -82,99 +84,17 @@ public class VentanaMenuFarmaceuta extends JFrame {
 
     // ------------------ PANEL DASHBOARD ------------------ 
     private JPanel crearPanelDashboard() {
-        return new DashboardPanel(recetas, medicamentos);
+        return new DashboardPanel();
     }
 
     // ------------------ PANEL HISTORICO ------------------
     private JPanel crearPanelHistorico() {
-        JPanel panel = new JPanel(new BorderLayout());
-
-        String[] columnas = {
-            "ID", "Paciente", "Estado",
-            "Fecha Confección", "Fecha Retiro", "Fecha Proceso", "Fecha Lista", "Fecha Entregada"
-        };
-        DefaultTableModel modeloHistorico = new DefaultTableModel(columnas, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-
-        JTable tablaHistorico = new JTable(modeloHistorico);
-        JScrollPane scroll = new JScrollPane(tablaHistorico);
-
-        // Panel de búsqueda
-        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel lblBuscar = new JLabel("Buscar por ID:");
-        JTextField txtBuscar = new JTextField(10);
-        JButton btnBuscar = new JButton("Buscar");
-        JButton btnReset = new JButton("⟳");
-        btnReset.setBounds(350, 180, 50, 30);
-
-        panelBusqueda.add(lblBuscar);
-        panelBusqueda.add(txtBuscar);
-        panelBusqueda.add(btnBuscar);
-        panelBusqueda.add(btnReset);
-
-        // Acción Buscar
-        btnBuscar.addActionListener(e -> {
-            String texto = txtBuscar.getText().trim();
-            if (texto.isEmpty()) {
-                cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
-            } else {
-                Receta r = controlReceta.buscarPorId(texto);
-                modeloHistorico.setRowCount(0); // limpiar tabla
-                if (r != null) {
-                    modeloHistorico.addRow(new Object[]{
-                        r.getId(),
-                        (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
-                        r.getEstado(),
-                        formatearFecha(r.getFechaConfeccion()),
-                        formatearFecha(r.getFechaRetiro()),
-                        formatearFecha(r.getFechaProceso()),
-                        formatearFecha(r.getFechaLista()),
-                        formatearFecha(r.getFechaEntrega())
-                    });
-                } else {
-                    JOptionPane.showMessageDialog(panel, "No se encontró una receta con ID: " + texto);
-                }
-            }
-        });
-
-        // Acción Reset
-        btnReset.addActionListener(e -> {
-            txtBuscar.setText("");
-            cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
-        });
-
-        panel.add(panelBusqueda, BorderLayout.NORTH);
-        panel.add(scroll, BorderLayout.CENTER);
-        cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
-
-        return panel;
+        return new PanelHistorico(controlReceta);
     }
-
 
     // ------------------ PANEL ACERCA DE ------------------
     private JPanel crearPanelAcercaDe() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(230, 233, 237));
-
-        JLabel lblTitulo = new JLabel("Gestión de Recetas (Farmaceuta)", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
-        lblTitulo.setForeground(Color.BLUE);
-        panel.add(lblTitulo, BorderLayout.NORTH);
-
-        JLabel lblImagen = new JLabel();
-        lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
-        lblImagen.setIcon(cargarIcono("/imagenes/hospital imagen principal.jpg", 700, 300));
-        panel.add(lblImagen, BorderLayout.CENTER);
-
-        JPanel subPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        subPanel.setBackground(new Color(230, 233, 237));
-        JLabel lblInfo = new JLabel("Total Soft Inc.   @totalsoft   Tel. 67197691");
-        lblInfo.setFont(new Font("Arial", Font.PLAIN, 14));
-        subPanel.add(lblInfo);
-        panel.add(subPanel, BorderLayout.SOUTH);
-
-        return panel;
+        return new PanelAcercaDe();
     }
 
     // ------------------ ACCIONES ------------------
@@ -308,24 +228,5 @@ public class VentanaMenuFarmaceuta extends JFrame {
         Image img = icono.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(img);
     }
-
-    private void cargarHistorico(List<Receta> recetas, DefaultTableModel modelo) {
-        modelo.setRowCount(0); // limpiar tabla
-        for (Receta r : recetas) {
-            modelo.addRow(new Object[]{
-                r.getId(),
-                (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
-                r.getEstado(),
-                formatearFecha(r.getFechaConfeccion()),
-                formatearFecha(r.getFechaRetiro()),
-                formatearFecha(r.getFechaProceso()),
-                formatearFecha(r.getFechaLista()),
-                formatearFecha(r.getFechaEntrega())
-            });
-        }
-    
-    }
-
-    
 
 }

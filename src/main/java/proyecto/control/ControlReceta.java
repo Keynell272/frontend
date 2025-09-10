@@ -22,14 +22,14 @@ public class ControlReceta {
     private List<Receta> recetas;
     private List<Medicamento> medicamentos;
 
-    public ControlReceta(List<Receta> recetas) {
-        this.recetas = recetas;
+    public ControlReceta() {
+        this.recetas = XmlManager.cargarRecetas("recetas.xml");
         this.medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
 
     }
     
     public List<Receta> getRecetas() {
-        return XmlManager.cargarRecetas("recetas.xml", medicamentos);
+        return XmlManager.cargarRecetas("recetas.xml");
     }
     
     private static final SimpleDateFormat SDF_DMY = new SimpleDateFormat("dd/MM/yyyy");

@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <medicos>
-    <medico clave="123" especialidad="Cirujano" id="MED-111" nombre="Carlos Alberto Mora"/>
+    <medico clave="123" especialidad="Cirujano" id="MED-111" nombre="Luka Modric"/>
 </medicos>

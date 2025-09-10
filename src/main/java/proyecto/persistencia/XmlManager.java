@@ -378,8 +378,9 @@ public class XmlManager {
         }
     }
 
-    public static List<Receta> cargarRecetas(String ruta, List<Medicamento> medicamentos) {
+    public static List<Receta> cargarRecetas(String ruta) {
         List<Receta> recetas = new ArrayList<>();
+        List<Medicamento> medicamentosAux = cargarMedicamentos("medicamentos.xml");
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -440,7 +441,7 @@ public class XmlManager {
                     Element d = (Element) meds.item(j);
 
                     // Buscar medicamento por nombre o código
-                    Medicamento med = medicamentos.stream()
+                    Medicamento med = medicamentosAux.stream()
                             .filter(m -> m.getNombre().equals(d.getAttribute("nombre")))
                             .findFirst().orElse(null);
 

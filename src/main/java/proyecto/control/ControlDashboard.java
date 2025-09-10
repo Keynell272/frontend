@@ -1,16 +1,33 @@
 package proyecto.control;
 
 import proyecto.model.Receta;
+import proyecto.persistencia.XmlManager;
 import proyecto.model.DetalleReceta;
 import proyecto.model.Medicamento;
+import proyecto.control.ControlAdmin;
+import proyecto.control.ControlReceta;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ControlDashboard {
     private List<Receta> recetas;
+    private List<Medicamento> medicamentos;
+    private ControlAdmin controlAdmin;
+    private ControlReceta controlReceta;
 
-    public ControlDashboard(List<Receta> recetas) {
-        this.recetas = recetas;
+    public ControlDashboard() {
+        this.controlReceta = new ControlReceta();
+        this.controlAdmin = new ControlAdmin();
+        this.medicamentos = controlAdmin.getMedicamentos();
+        this.recetas = controlReceta.getRecetas();
+    }
+
+    public List<Receta> getRecetas() {
+        return recetas;
+    }
+    
+    public List<Medicamento> getMedicamentos() {
+        return medicamentos;
     }
 
     // Totales (todas las unidades) por mes
@@ -65,4 +82,18 @@ public class ControlDashboard {
         }
         return res;
     }
+
+    public void setRecetas(List<Receta> recetas) {
+        this.recetas = recetas;
+    }
+
+    public void setMedicamentos(List<Medicamento> medicamentos) {
+        this.medicamentos = medicamentos;
+    }
+
+    public void actualizarDatos(List<Receta> recetasAux, List<Medicamento> medicamentosAux) {
+        recetasAux = XmlManager.cargarRecetas("recetas.xml");
+        medicamentosAux = XmlManager.cargarMedicamentos("medicamentos.xml");
+    }
+
 }

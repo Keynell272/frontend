@@ -1,4 +1,4 @@
-package proyecto.model;
+package proyecto.view.paneles.generales;
 
 import javax.swing.*;
 import java.awt.*;

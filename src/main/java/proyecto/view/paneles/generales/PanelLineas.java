@@ -1,9 +1,8 @@
-package proyecto.view;
+package proyecto.view.paneles.generales;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 public class PanelLineas extends JPanel {
     private Map<String, Map<Integer, Integer>> series = new LinkedHashMap<>();

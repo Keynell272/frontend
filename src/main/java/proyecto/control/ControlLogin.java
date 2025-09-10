@@ -27,7 +27,7 @@ public class ControlLogin {
         medicos = XmlManager.cargarMedicos("medicos.xml");
         farmaceutas = XmlManager.cargarFarmaceutas("farmaceutas.xml");
         medicamentos = XmlManager.cargarMedicamentos("medicamentos.xml");
-        recetas = XmlManager.cargarRecetas("recetas.xml", medicamentos);
+        recetas = XmlManager.cargarRecetas("recetas.xml");
     }
 
     public Usuario login(String id, String clave) {
@@ -68,9 +68,9 @@ public class ControlLogin {
     // Navegación: abrir la ventana correspondiente según el tipo de usuario
     public void postLogin(javax.swing.JFrame loginWindow, Usuario u) {
         if (u instanceof Medico) {
-            new VentanaMenuMedico((Medico) u, new ControlReceta(recetas)).setVisible(true);
+            new VentanaMenuMedico((Medico) u, new ControlReceta()).setVisible(true);
         } else if (u instanceof Farmaceuta) {
-            new VentanaMenuFarmaceuta((Farmaceuta) u, new ControlReceta(recetas)).setVisible(true);
+            new VentanaMenuFarmaceuta((Farmaceuta) u, new ControlReceta()).setVisible(true);
         } else {
             new VentanaMenuAdmin(u).setVisible(true);
         }

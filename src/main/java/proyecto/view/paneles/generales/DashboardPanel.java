@@ -1,22 +1,20 @@
-package proyecto.view;
+package proyecto.view.paneles.generales;
 
 import proyecto.control.ControlDashboard;
 import proyecto.model.Medicamento;
 import proyecto.model.Receta;
-import proyecto.persistencia.XmlManager;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import proyecto.view.PanelLineas;
-import proyecto.view.PanelPastel;
+import java.util.List;
 
 public class DashboardPanel extends JPanel {
 
-    private final java.util.List<Receta> recetas;
-    private final java.util.List<Medicamento> medicamentos;
+    private final List<Receta> recetas;
+    private final List<Medicamento> medicamentos;
     private final ControlDashboard control;
 
     // Filtros
@@ -33,12 +31,11 @@ public class DashboardPanel extends JPanel {
     private PanelLineas graficoLineas;
     private PanelPastel graficoPastel;
 
-    public DashboardPanel(java.util.List<Receta> recetas, java.util.List<Medicamento> medicamentos) {
-        this.recetas = (recetas != null) ? recetas
-                : XmlManager.cargarRecetas("recetas.xml",
-                    (medicamentos != null) ? medicamentos : XmlManager.cargarMedicamentos("medicamentos.xml"));
-        this.medicamentos = (medicamentos != null) ? medicamentos : XmlManager.cargarMedicamentos("medicamentos.xml");
-        this.control = new ControlDashboard(this.recetas);
+    public DashboardPanel() {
+        this.control = new ControlDashboard();
+        this.recetas = control.getRecetas();
+        this.medicamentos = control.getMedicamentos();
+        
         initUI();
         cargarInicial();
     }
@@ -161,7 +158,7 @@ public class DashboardPanel extends JPanel {
             if (sel != null && !modeloSeleccion.contains(sel)) modeloSeleccion.addElement(sel);
         });
         btnQuitar.addActionListener(e -> {
-            java.util.List<String> seleccion = listaSeleccion.getSelectedValuesList();
+            List<String> seleccion = listaSeleccion.getSelectedValuesList();
             for (String s : seleccion) modeloSeleccion.removeElement(s);
         });
         btnLimpiar.addActionListener(e -> {
@@ -186,7 +183,7 @@ public class DashboardPanel extends JPanel {
 
     private void actualizarGraficos() {
         int anio = getAnioDesde();
-        java.util.List<Integer> meses = mesesRango();
+        List<Integer> meses = mesesRango();
 
         Map<String, Map<Integer, Integer>> series = new LinkedHashMap<>();
         if (!meses.isEmpty()) {
@@ -224,10 +221,10 @@ public class DashboardPanel extends JPanel {
     private int getAnioHasta() { return ((Number) spAnioHasta.getValue()).intValue(); }
     private int getMesHasta() { return cbMesHasta.getSelectedIndex() + 1; }
 
-    private java.util.List<Integer> mesesRango() {
+    private List<Integer> mesesRango() {
         int ai = getAnioDesde(), af = getAnioHasta();
         int mi = getMesDesde(), mf = getMesHasta();
-        java.util.List<Integer> meses = new ArrayList<>();
+        List<Integer> meses = new ArrayList<>();
         if (ai != af) af = ai; // la maqueta usa mismo año
         for (int m = mi; m <= mf; m++) meses.add(m);
         return meses;
@@ -238,7 +235,7 @@ public class DashboardPanel extends JPanel {
                 "7-Julio","8-Agosto","9-Septiembre","10-Octubre","11-Noviembre","12-Diciembre"};
     }
     private String[] nombresMedicamentos() {
-        java.util.List<String> n = new ArrayList<>();
+        List<String> n = new ArrayList<>();
         for (Medicamento m : medicamentos) n.add(m.getNombre());
         return n.toArray(new String[0]);
     }
