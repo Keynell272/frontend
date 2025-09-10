@@ -25,6 +25,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
+import java.util.Date;
 
 import proyecto.control.ControlReceta;
 import proyecto.control.ControlAdmin;
@@ -67,7 +68,7 @@ public class VentanaMenuMedico extends JFrame {
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelPrescribir());
         tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), new DashboardPanel(recetas, cargarMedicamentos));
-        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), new JPanel());
+        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), crearPanelHistorico());
         tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
         add(tabbedPane);
     }
@@ -335,6 +336,91 @@ public class VentanaMenuMedico extends JFrame {
         dialog.setVisible(true);
     }
 
+    // ------------------ HISTORICO ------------------
+    private JPanel crearPanelHistorico() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        String[] columnas = {
+            "ID", "Paciente", "Estado",
+            "Fecha Confección", "Fecha Retiro", "Fecha Proceso", "Fecha Lista", "Fecha Entregada"
+        };
+        DefaultTableModel modeloHistorico = new DefaultTableModel(columnas, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        JTable tablaHistorico = new JTable(modeloHistorico);
+        JScrollPane scroll = new JScrollPane(tablaHistorico);
+
+        // Panel de búsqueda
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel lblBuscar = new JLabel("Buscar por ID:");
+        JTextField txtBuscar = new JTextField(10);
+        JButton btnBuscar = new JButton("Buscar");
+        JButton btnReset = new JButton("⟳");
+        btnReset.setBounds(350, 180, 50, 30);
+
+        panelBusqueda.add(lblBuscar);
+        panelBusqueda.add(txtBuscar);
+        panelBusqueda.add(btnBuscar);
+        panelBusqueda.add(btnReset);
+
+        // Acción Buscar
+        btnBuscar.addActionListener(e -> {
+            String texto = txtBuscar.getText().trim();
+            if (texto.isEmpty()) {
+                cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+            } else {
+                Receta r = controlReceta.buscarPorId(texto);
+                modeloHistorico.setRowCount(0); // limpiar tabla
+                if (r != null) {
+                    modeloHistorico.addRow(new Object[]{
+                        r.getId(),
+                        (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
+                        r.getEstado(),
+                        formatearFecha(r.getFechaConfeccion()),
+                        formatearFecha(r.getFechaRetiro()),
+                        formatearFecha(r.getFechaProceso()),
+                        formatearFecha(r.getFechaLista()),
+                        formatearFecha(r.getFechaEntrega())
+                    });
+                } else {
+                    JOptionPane.showMessageDialog(panel, "No se encontró una receta con ID: " + texto);
+                }
+            }
+        });
+
+        // Acción Reset
+        btnReset.addActionListener(e -> {
+            txtBuscar.setText("");
+            cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+        });
+
+        panel.add(panelBusqueda, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+
+        return panel;
+    }
+    private void cargarHistorico(List<Receta> recetas, DefaultTableModel modelo) {
+        modelo.setRowCount(0); // limpiar tabla
+        for (Receta r : recetas) {
+            modelo.addRow(new Object[]{
+                r.getId(),
+                (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
+                r.getEstado(),
+                formatearFecha(r.getFechaConfeccion()),
+                formatearFecha(r.getFechaRetiro()),
+                formatearFecha(r.getFechaProceso()),
+                formatearFecha(r.getFechaLista()),
+                formatearFecha(r.getFechaEntrega())
+            });
+        }
+    }
+
+    private String formatearFecha(Date d) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        return (d != null) ? sdf.format(d) : "";
+    }
     // ------------------ DETALLES ------------------
     private void mostrarVentanaDetalles() {
         JDialog dialog = new JDialog(this, "Detalles de la Prescripción", true);

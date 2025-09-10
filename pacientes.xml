@@ -1,4 +1,2 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<pacientes>
-    <paciente fechaNac="2002-12-27" id="PAC-111" nombre="Keynell Molina" telefono="60495194"/>
-</pacientes>
+<pacientes/>

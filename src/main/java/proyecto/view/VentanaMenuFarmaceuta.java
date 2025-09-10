@@ -100,9 +100,52 @@ public class VentanaMenuFarmaceuta extends JFrame {
         JTable tablaHistorico = new JTable(modeloHistorico);
         JScrollPane scroll = new JScrollPane(tablaHistorico);
 
-        panel.add(scroll, BorderLayout.CENTER);
+        // Panel de búsqueda
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel lblBuscar = new JLabel("Buscar por ID:");
+        JTextField txtBuscar = new JTextField(10);
+        JButton btnBuscar = new JButton("Buscar");
+        JButton btnReset = new JButton("⟳");
+        btnReset.setBounds(350, 180, 50, 30);
 
-        // cargar recetas en la tabla
+        panelBusqueda.add(lblBuscar);
+        panelBusqueda.add(txtBuscar);
+        panelBusqueda.add(btnBuscar);
+        panelBusqueda.add(btnReset);
+
+        // Acción Buscar
+        btnBuscar.addActionListener(e -> {
+            String texto = txtBuscar.getText().trim();
+            if (texto.isEmpty()) {
+                cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+            } else {
+                Receta r = controlReceta.buscarPorId(texto);
+                modeloHistorico.setRowCount(0); // limpiar tabla
+                if (r != null) {
+                    modeloHistorico.addRow(new Object[]{
+                        r.getId(),
+                        (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
+                        r.getEstado(),
+                        formatearFecha(r.getFechaConfeccion()),
+                        formatearFecha(r.getFechaRetiro()),
+                        formatearFecha(r.getFechaProceso()),
+                        formatearFecha(r.getFechaLista()),
+                        formatearFecha(r.getFechaEntrega())
+                    });
+                } else {
+                    JOptionPane.showMessageDialog(panel, "No se encontró una receta con ID: " + texto);
+                }
+            }
+        });
+
+        // Acción Reset
+        btnReset.addActionListener(e -> {
+            txtBuscar.setText("");
+            cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+        });
+
+        panel.add(panelBusqueda, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
         cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
 
         return panel;
@@ -280,6 +323,9 @@ public class VentanaMenuFarmaceuta extends JFrame {
                 formatearFecha(r.getFechaEntrega())
             });
         }
-}
+    
+    }
+
+    
 
 }

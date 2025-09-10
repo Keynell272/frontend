@@ -2,7 +2,6 @@ package proyecto.view;
 
 import proyecto.model.Medico;
 import proyecto.model.Usuario;
-import proyecto.persistencia.XmlManager;
 import proyecto.model.Farmaceuta;
 import proyecto.model.Medicamento;
 import proyecto.model.Paciente;
@@ -46,11 +45,14 @@ public class VentanaMenuAdmin extends JFrame {
     private List<Medicamento> medicamentos;
     private List<Receta> recetas;
 
+    private DashboardPanel panelDashboard;
+
     public VentanaMenuAdmin(Usuario usuarioLogueado) {
         this.usuarioLogueado = usuarioLogueado;
 
         this.controlAdmin = new ControlAdmin();
         this.controlReceta = new ControlReceta(recetas);
+        this.panelDashboard = new DashboardPanel(recetas, medicamentos);
 
         this.medicos = controlAdmin.getMedicos();
         this.farmaceutas = controlAdmin.getFarmaceutas();
@@ -86,8 +88,7 @@ public class VentanaMenuAdmin extends JFrame {
 
         JPanel panelDashboard = new DashboardPanel(recetas, medicamentos);
 
-        JPanel panelHistorico = new JPanel();
-        panelHistorico.add(new JLabel("Histórico"));
+        JPanel panelHistorico = crearPanelHistorico();
 
         JPanel panelAcerca = crearPanelAcercaDe();
 
@@ -860,6 +861,87 @@ public class VentanaMenuAdmin extends JFrame {
             txtPresentacion.setText("");
         });
         return panel;
+    }
+    
+    // ===================== PANEL HISTORICO =====================
+ private JPanel crearPanelHistorico() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        String[] columnas = {
+            "ID", "Paciente", "Estado",
+            "Fecha Confección", "Fecha Retiro", "Fecha Proceso", "Fecha Lista", "Fecha Entregada"
+        };
+        DefaultTableModel modeloHistorico = new DefaultTableModel(columnas, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        JTable tablaHistorico = new JTable(modeloHistorico);
+        JScrollPane scroll = new JScrollPane(tablaHistorico);
+
+        // Panel de búsqueda
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel lblBuscar = new JLabel("Buscar por ID:");
+        JTextField txtBuscar = new JTextField(10);
+        JButton btnBuscar = new JButton("Buscar");
+        JButton btnReset = new JButton("⟳");
+        btnReset.setBounds(350, 180, 50, 30);
+
+        panelBusqueda.add(lblBuscar);
+        panelBusqueda.add(txtBuscar);
+        panelBusqueda.add(btnBuscar);
+        panelBusqueda.add(btnReset);
+
+        // Acción Buscar
+        btnBuscar.addActionListener(e -> {
+            String texto = txtBuscar.getText().trim();
+            if (texto.isEmpty()) {
+                cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+            } else {
+                Receta r = controlReceta.buscarPorId(texto);
+                modeloHistorico.setRowCount(0); // limpiar tabla
+                if (r != null) {
+                    modeloHistorico.addRow(new Object[]{
+                        r.getId(),
+                        (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
+                        r.getEstado(),
+                        formatearFecha(r.getFechaConfeccion()),
+                        formatearFecha(r.getFechaRetiro()),
+                        formatearFecha(r.getFechaProceso()),
+                        formatearFecha(r.getFechaLista()),
+                        formatearFecha(r.getFechaEntrega())
+                    });
+                } else {
+                    JOptionPane.showMessageDialog(panel, "No se encontró una receta con ID: " + texto);
+                }
+            }
+        });
+
+        // Acción Reset
+        btnReset.addActionListener(e -> {
+            txtBuscar.setText("");
+            cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+        });
+
+        panel.add(panelBusqueda, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        cargarHistorico(controlReceta.getRecetas(), modeloHistorico);
+
+        return panel;
+    }
+    private void cargarHistorico(List<Receta> recetas, DefaultTableModel modelo) {
+        modelo.setRowCount(0); // limpiar tabla
+        for (Receta r : recetas) {
+            modelo.addRow(new Object[]{
+                r.getId(),
+                (r.getPaciente() != null ? r.getPaciente().getNombre() : ""),
+                r.getEstado(),
+                formatearFecha(r.getFechaConfeccion()),
+                formatearFecha(r.getFechaRetiro()),
+                formatearFecha(r.getFechaProceso()),
+                formatearFecha(r.getFechaLista()),
+                formatearFecha(r.getFechaEntrega())
+            });
+        }
     }
     
     // ===================== PANEL ACERCA DE =====================

@@ -7,7 +7,7 @@
         <fechaProceso>04/09/2025</fechaProceso>
         <fechaLista>04/09/2025</fechaLista>
         <fechaEntregada>08/09/2025</fechaEntregada>
-        <paciente id="PAC-111" nombre="Keynell Molina" telefono="60495194"/>
+        <paciente id="PAC-111" nombre="Pedro Porro" telefono="60495194"/>
         <medicamento cantidad="5" duracion="30" indicaciones="Dia y noche" nombre="Paracetamol" presentacion="100mg"/>
     </receta>
 </recetas>
