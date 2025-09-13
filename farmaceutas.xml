@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <farmaceutas>
-    <farmaceuta clave="123" id="FAR-111" nombre="Ter Stegen"/>
+    <farmaceuta id="F001" nombre="Carlos Fernández" clave="123" />
+    <farmaceuta id="F002" nombre="Laura Rodríguez" clave="123" />
 </farmaceutas>

@@ -1,13 +1,46 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <recetas>
+    <receta id="R001">
+        <estado>confeccionada</estado>
+        <fechaConfeccion>10/09/2025</fechaConfeccion>
+        <fechaRetiro>15/09/2025</fechaRetiro>
+        <fechaProceso></fechaProceso>
+        <fechaLista></fechaLista>
+        <fechaEntregada></fechaEntregada>
+        <paciente id="P001" nombre="Pedro Gómez" telefono="88887777"/>
+        <medicamento nombre="Paracetamol" presentacion="Tabletas 500mg" cantidad="20" indicaciones="Cada 8 horas" duracion="5"/>
+    </receta>
+
     <receta id="R002">
+        <estado>proceso</estado>
+        <fechaConfeccion>08/09/2025</fechaConfeccion>
+        <fechaRetiro>12/09/2025</fechaRetiro>
+        <fechaProceso>10/09/2025</fechaProceso>
+        <fechaLista></fechaLista>
+        <fechaEntregada></fechaEntregada>
+        <paciente id="P002" nombre="Lucía Fernández" telefono="89996666"/>
+        <medicamento nombre="Ibuprofeno" presentacion="Cápsulas 400mg" cantidad="15" indicaciones="Cada 12 horas" duracion="7"/>
+    </receta>
+
+    <receta id="R003">
+        <estado>lista</estado>
+        <fechaConfeccion>05/09/2025</fechaConfeccion>
+        <fechaRetiro>09/09/2025</fechaRetiro>
+        <fechaProceso>06/09/2025</fechaProceso>
+        <fechaLista>08/09/2025</fechaLista>
+        <fechaEntregada></fechaEntregada>
+        <paciente id="P003" nombre="Andrés Mora" telefono="87001234"/>
+        <medicamento nombre="Amoxicilina" presentacion="Jarabe 250mg/5ml" cantidad="1" indicaciones="10ml cada 8 horas" duracion="7"/>
+    </receta>
+
+    <receta id="R004">
         <estado>entregada</estado>
-        <fechaConfeccion>04/09/2025</fechaConfeccion>
-        <fechaRetiro>05/09/2025</fechaRetiro>
-        <fechaProceso>04/09/2025</fechaProceso>
-        <fechaLista>04/09/2025</fechaLista>
-        <fechaEntregada>08/09/2025</fechaEntregada>
-        <paciente id="PAC-111" nombre="Pedro Porro" telefono="60495194"/>
-        <medicamento cantidad="5" duracion="30" indicaciones="Dia y noche" nombre="Paracetamol" presentacion="100mg"/>
+        <fechaConfeccion>01/09/2025</fechaConfeccion>
+        <fechaRetiro>03/09/2025</fechaRetiro>
+        <fechaProceso>02/09/2025</fechaProceso>
+        <fechaLista>02/09/2025</fechaLista>
+        <fechaEntregada>03/09/2025</fechaEntregada>
+        <paciente id="P001" nombre="Pedro Gómez" telefono="88887777"/>
+        <medicamento nombre="Omeprazol" presentacion="Tabletas 20mg" cantidad="30" indicaciones="Antes del desayuno" duracion="15"/>
     </receta>
 </recetas>

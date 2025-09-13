@@ -243,7 +243,7 @@ public class XmlManager {
             Document doc = dBuilder.parse(file);
             NodeList lista = doc.getElementsByTagName("paciente");
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy"); // formato legible
 
             for (int i = 0; i < lista.getLength(); i++) {
                 Element p = (Element) lista.item(i);
