@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<medicos>
-    <medico id="M001" nombre="Dr. Juan Pérez" especialidad="Cardiología" clave="123" />
-    <medico id="M002" nombre="Dra. Ana Gómez" especialidad="Pediatría" clave="123" />
-    <medico id="M003" nombre="Dr. Luis Ramírez" especialidad="Dermatología" clave="123" />
-</medicos>
-

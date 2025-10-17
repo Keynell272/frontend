@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<medicamentos>
-    <medicamento codigo="MED001" nombre="Paracetamol" presentacion="Tabletas 500mg" />
-    <medicamento codigo="MED002" nombre="Ibuprofeno" presentacion="Cápsulas 400mg" />
-    <medicamento codigo="MED003" nombre="Amoxicilina" presentacion="Jarabe 250mg/5ml" />
-    <medicamento codigo="MED004" nombre="Omeprazol" presentacion="Tabletas 20mg" />
-</medicamentos>

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<pacientes>
-    <paciente id="P001" nombre="Pedro Gómez" fechaNac="12/05/1985" telefono="88887777" />
-    <paciente id="P002" nombre="Lucía Fernández" fechaNac="23/09/1990" telefono="89996666" />
-    <paciente id="P003" nombre="Andrés Mora" fechaNac="02/01/2000" telefono="87001234" />
-</pacientes>
