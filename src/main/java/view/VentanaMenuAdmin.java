@@ -17,14 +17,19 @@ import view.paneles.admin.PanelPacientes;
 import view.paneles.generales.DashboardPanel;
 import view.paneles.generales.PanelAcercaDe;
 import view.paneles.generales.PanelHistorico;
+import view.paneles.generales.PanelUsuariosActivos;
 
 import java.awt.*;
 import java.net.URL;
 import java.util.List;
 
+
+
 public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
-
+    // Panel de usuarios activos
+    private PanelUsuariosActivos panelUsuariosActivos;
+    
     private ControlAdmin controlAdmin;
     private ControlReceta controlReceta;
 
@@ -51,11 +56,13 @@ public class VentanaMenuAdmin extends JFrame {
 
     private void init() {
         setTitle(usuarioLogueado.getNombre() + " (" + usuarioLogueado.getRol() + ")");
-        setSize(900, 650);
+        setSize(1150, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         setIconImage(new ImageIcon(getClass().getResource("/imagenes/Recetas logo.png")).getImage());
+         // Panel principal con BorderLayout
+        JPanel panelPrincipal = new JPanel(new BorderLayout());
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -87,7 +94,12 @@ public class VentanaMenuAdmin extends JFrame {
         tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 24, 24), panelHistorico);
         tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 24, 24), panelAcerca);
 
-        add(tabbedPane, BorderLayout.CENTER);
+        panelPrincipal.add(tabbedPane, BorderLayout.CENTER);
+    
+        // Panel de usuarios activos al lado derecho
+        panelUsuariosActivos = new PanelUsuariosActivos(usuarioLogueado);
+        panelPrincipal.add(panelUsuariosActivos, BorderLayout.EAST);    
+        add(panelPrincipal);
     }
 
     // ===================== PANELS =====================

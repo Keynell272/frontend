@@ -35,6 +35,7 @@ import view.paneles.generales.DashboardPanel;
 import view.paneles.generales.DatePickerConNavegacion;
 import view.paneles.generales.PanelAcercaDe;
 import view.paneles.generales.PanelHistorico;
+import view.paneles.generales.PanelUsuariosActivos;
 
 public class VentanaMenuMedico extends JFrame {
     private Medico medicoLogueado;
@@ -49,6 +50,9 @@ public class VentanaMenuMedico extends JFrame {
     private JLabel lblPaciente;
     private Paciente pacienteSeleccionado;
     private List<Medicamento> cargarMedicamentos;
+    
+    // Panel de usuarios activos
+    private PanelUsuariosActivos panelUsuariosActivos;
 
     public VentanaMenuMedico(Medico medicoLogueado, ControlReceta controlReceta) {
         this.medicoLogueado = medicoLogueado;
@@ -62,17 +66,28 @@ public class VentanaMenuMedico extends JFrame {
     // ------------------ INIT ------------------
     private void init() {
         setTitle("Sistema de Recetas - Dr(a). " + medicoLogueado.getNombre() + " (" + medicoLogueado.getRol() + ")");
-        setSize(820, 550);
+        setSize(1050, 550); // Incrementado el ancho para el panel de usuarios
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(cargarIcono("/imagenes/medico logo.png", 32, 32).getImage());
 
+        // Panel principal con BorderLayout
+        JPanel panelPrincipal = new JPanel(new BorderLayout());
+        
+        // TabbedPane en el centro
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelPrescribir());
         tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), new DashboardPanel());
         tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), crearPanelHistorico());
         tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
-        add(tabbedPane);
+        
+        panelPrincipal.add(tabbedPane, BorderLayout.CENTER);
+        
+        // Panel de usuarios activos al lado derecho
+        panelUsuariosActivos = new PanelUsuariosActivos(medicoLogueado);
+        panelPrincipal.add(panelUsuariosActivos, BorderLayout.EAST);
+        
+        add(panelPrincipal);
         
         // Listener para cerrar sesión al cerrar ventana
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -116,7 +131,7 @@ public class VentanaMenuMedico extends JFrame {
         panelPrescribir.add(btnAgregarMedicamento);
 
         btnCerrarSesion = new JButton("Cerrar Sesión");
-        btnCerrarSesion.setBounds(650, 25, 130, 30);
+        btnCerrarSesion.setBounds(420, 25, 130, 30);
         btnCerrarSesion.setBackground(new Color(231, 76, 60));
         btnCerrarSesion.setForeground(Color.WHITE);
         btnCerrarSesion.setFocusPainted(false);
@@ -160,7 +175,7 @@ public class VentanaMenuMedico extends JFrame {
         };
         tablaMedicamentos = new JTable(modeloTabla);
         JScrollPane scroll = new JScrollPane(tablaMedicamentos);
-        scroll.setBounds(20, 160, 760, 180);
+        scroll.setBounds(20, 160, 530, 180);
         panelPrescribir.add(scroll);
 
         // Ajustar Prescripción
@@ -172,7 +187,7 @@ public class VentanaMenuMedico extends JFrame {
         btnGuardar = new JButton("Guardar", cargarIcono("/imagenes/Guardar logo.png", 20, 20));
         btnGuardar.setBounds(20, 375, 130, 35);
         btnGuardar.setBackground(new Color(46, 204, 113));
-        btnGuardar.setForeground(Color.WHITE);
+        btnGuardar.setForeground(Color.BLACK);
         btnGuardar.setFocusPainted(false);
         btnGuardar.addActionListener(e -> guardarReceta());
         panelPrescribir.add(btnGuardar);
@@ -183,12 +198,12 @@ public class VentanaMenuMedico extends JFrame {
         panelPrescribir.add(btnLimpiar);
 
         btnDescartar = new JButton("Descartar Med.", cargarIcono("/imagenes/Borrar logo.png", 20, 20));
-        btnDescartar.setBounds(300, 375, 150, 35);
+        btnDescartar.setBounds(300, 375, 130, 35);
         btnDescartar.addActionListener(e -> descartarMedicamento());
         panelPrescribir.add(btnDescartar);
 
         btnDetalles = new JButton("Detalles", cargarIcono("/imagenes/Check logo.png", 20, 20));
-        btnDetalles.setBounds(460, 375, 130, 35);
+        btnDetalles.setBounds(440, 375, 110, 35);
         btnDetalles.addActionListener(e -> mostrarVentanaDetalles());
         panelPrescribir.add(btnDetalles);
 
@@ -205,7 +220,6 @@ public class VentanaMenuMedico extends JFrame {
                 medicoLogueado.getId()
             );
             
-            // Si llega aquí, la receta se guardó exitosamente
             limpiarFormulario();
             controlReceta.refrescarDatos();
             
@@ -277,7 +291,6 @@ public class VentanaMenuMedico extends JFrame {
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // Panel superior con filtros
         JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         panelFiltro.setBorder(BorderFactory.createTitledBorder("Filtrar"));
         JComboBox<String> comboFiltro = new JComboBox<>(new String[]{"Nombre", "ID"});
@@ -287,7 +300,6 @@ public class VentanaMenuMedico extends JFrame {
         panelFiltro.add(txtFiltro);
         dialog.add(panelFiltro, BorderLayout.NORTH);
 
-        // Tabla de pacientes
         String[] columnas = {"ID", "Nombre", "Teléfono", "Fecha Nacimiento"};
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
             @Override 
@@ -299,7 +311,6 @@ public class VentanaMenuMedico extends JFrame {
         tabla.getTableHeader().setReorderingAllowed(false);
         dialog.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        // Panel de botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnSeleccionar = new JButton("Seleccionar");
         btnSeleccionar.setBackground(new Color(46, 204, 113));
@@ -313,7 +324,6 @@ public class VentanaMenuMedico extends JFrame {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-        // Cargar datos en tabla
         Runnable cargarTabla = () -> {
             modelo.setRowCount(0);
             String criterio = comboFiltro.getSelectedItem().toString().toLowerCase();
@@ -333,7 +343,6 @@ public class VentanaMenuMedico extends JFrame {
         };
         cargarTabla.run();
 
-        // Listeners
         txtFiltro.addKeyListener(new KeyAdapter() {
             @Override 
             public void keyReleased(KeyEvent e) { 
@@ -379,7 +388,6 @@ public class VentanaMenuMedico extends JFrame {
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // Panel de filtros
         JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         panelFiltro.setBorder(BorderFactory.createTitledBorder("Filtrar"));
         JComboBox<String> comboFiltro = new JComboBox<>(new String[]{"Nombre", "Código"});
@@ -389,7 +397,6 @@ public class VentanaMenuMedico extends JFrame {
         panelFiltro.add(txtFiltro);
         dialog.add(panelFiltro, BorderLayout.NORTH);
 
-        // Tabla de medicamentos
         String[] columnas = {"Código", "Nombre", "Presentación"};
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
             @Override 
@@ -401,7 +408,6 @@ public class VentanaMenuMedico extends JFrame {
         tabla.getTableHeader().setReorderingAllowed(false);
         dialog.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        // Panel de botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnAgregar = new JButton("Agregar");
         btnAgregar.setBackground(new Color(46, 204, 113));
@@ -413,7 +419,6 @@ public class VentanaMenuMedico extends JFrame {
         panelBotones.add(btnCancelar);
         dialog.add(panelBotones, BorderLayout.SOUTH);
 
-        // Cargar datos
         Runnable cargarTabla = () -> {
             modelo.setRowCount(0);
             String criterio = comboFiltro.getSelectedItem().toString().toLowerCase();
@@ -432,7 +437,6 @@ public class VentanaMenuMedico extends JFrame {
         };
         cargarTabla.run();
 
-        // Listeners
         txtFiltro.addKeyListener(new KeyAdapter() { 
             @Override 
             public void keyReleased(KeyEvent e) { 
@@ -447,11 +451,11 @@ public class VentanaMenuMedico extends JFrame {
             if (fila != -1) {
                 DefaultTableModel modeloTabla = (DefaultTableModel) tablaMedicamentos.getModel();
                 modeloTabla.addRow(new Object[]{
-                    modelo.getValueAt(fila, 1),  // Nombre
-                    modelo.getValueAt(fila, 2),  // Presentación
-                    "",                          // Cantidad (vacío)
-                    "",                          // Indicaciones (vacío)
-                    ""                           // Duración (vacío)
+                    modelo.getValueAt(fila, 1),
+                    modelo.getValueAt(fila, 2),
+                    "",
+                    "",
+                    ""
                 });
                 dialog.dispose();
             } else {
@@ -487,7 +491,6 @@ public class VentanaMenuMedico extends JFrame {
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // Panel de información
         JPanel panelInfo = new JPanel();
         panelInfo.setBorder(BorderFactory.createTitledBorder("Información de la Receta"));
         panelInfo.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10));
@@ -496,17 +499,14 @@ public class VentanaMenuMedico extends JFrame {
         panelInfo.add(new JLabel("📅 Fecha de Retiro: " + txtFechaRetiro.getText()));
         dialog.add(panelInfo, BorderLayout.NORTH);
 
-        // Tabla editable
         String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración (días)"};
         DefaultTableModel modeloDetalles = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                // Solo Cantidad, Indicaciones y Duración son editables
                 return col == 2 || col == 3 || col == 4;
             }
         };
 
-        // Copiar datos de la tabla principal
         DefaultTableModel modeloOriginal = (DefaultTableModel) tablaMedicamentos.getModel();
         for (int i = 0; i < modeloOriginal.getRowCount(); i++) {
             Object[] fila = new Object[modeloOriginal.getColumnCount()];
@@ -518,7 +518,6 @@ public class VentanaMenuMedico extends JFrame {
 
         JTable tablaDetalles = new JTable(modeloDetalles);
 
-        // Listener para sincronizar cambios con tabla principal
         tablaDetalles.getModel().addTableModelListener(e -> {
             int fila = e.getFirstRow();
             int columna = e.getColumn();
@@ -530,7 +529,6 @@ public class VentanaMenuMedico extends JFrame {
 
         dialog.add(new JScrollPane(tablaDetalles), BorderLayout.CENTER);
 
-        // Panel de botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton btnGuardarCambios = new JButton("Guardar Cambios");
         btnGuardarCambios.setBackground(new Color(46, 204, 113));

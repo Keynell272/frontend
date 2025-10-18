@@ -8,6 +8,7 @@ import model.*;
 import view.paneles.generales.DashboardPanel;
 import view.paneles.generales.PanelAcercaDe;
 import view.paneles.generales.PanelHistorico;
+import view.paneles.generales.PanelUsuariosActivos;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,12 +16,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+
 public class VentanaMenuFarmaceuta extends JFrame {
     private Farmaceuta farmaceutaLogueado;
     private ControlReceta controlReceta;
     private List<Receta> recetas;
     private List<Medicamento> medicamentos;
-
+    private PanelUsuariosActivos panelUsuariosActivos;
     private JTable tablaRecetas;
     private DefaultTableModel modeloTabla;
 
@@ -33,20 +35,27 @@ public class VentanaMenuFarmaceuta extends JFrame {
     }
 
     private void init() {
-        setTitle("Recetas - " + farmaceutaLogueado.getId() + " (FARM)");
-        setSize(800, 500);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setIconImage(cargarIcono("/imagenes/farmaceuta logo.png", 32, 32).getImage());
+    setTitle("Recetas - " + farmaceutaLogueado.getId() + " (FARM)");
+    setSize(1050, 500);
+    setLocationRelativeTo(null);
+    setDefaultCloseOperation(EXIT_ON_CLOSE);
+    setIconImage(cargarIcono("/imagenes/farmaceuta logo.png", 32, 32).getImage());
 
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Administrar Recetas", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelFarmaceuta());
-        tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), crearPanelDashboard());
-        tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), crearPanelHistorico());
-        tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
+    JPanel panelPrincipal = new JPanel(new BorderLayout());
+    
+    JTabbedPane tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("Administrar Recetas", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelFarmaceuta());
+    tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), crearPanelDashboard());
+    tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 20, 20), crearPanelHistorico());
+    tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 20, 20), crearPanelAcercaDe());
+    
+    panelPrincipal.add(tabbedPane, BorderLayout.CENTER);
 
-        add(tabbedPane);
-    }
+    panelUsuariosActivos = new PanelUsuariosActivos(farmaceutaLogueado);
+    panelPrincipal.add(panelUsuariosActivos, BorderLayout.EAST);
+    
+    add(panelPrincipal);
+}
 
     // ------------------ PANEL FARMACEUTA ------------------
     private JPanel crearPanelFarmaceuta() {
