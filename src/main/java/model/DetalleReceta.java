@@ -1,12 +1,23 @@
 package model;
 
 public class DetalleReceta {
+    private int id;  
     private Medicamento medicamento;
     private int cantidad;
     private String indicaciones;
     private int duracionDias;
 
+    // Constructor sin id (para crear nuevos)
     public DetalleReceta(Medicamento medicamento, int cantidad, String indicaciones, int duracionDias) {
+        this.medicamento = medicamento;
+        this.cantidad = cantidad;
+        this.indicaciones = indicaciones;
+        this.duracionDias = duracionDias;
+    }
+    
+    // Constructor con id (para cargar desde Backend)
+    public DetalleReceta(int id, Medicamento medicamento, int cantidad, String indicaciones, int duracionDias) {
+        this.id = id;
         this.medicamento = medicamento;
         this.cantidad = cantidad;
         this.indicaciones = indicaciones;
@@ -14,6 +25,9 @@ public class DetalleReceta {
     }
 
     // Getters
+    public int getId() {
+        return id;
+    }
     public Medicamento getMedicamento() {
         return medicamento;
     }
@@ -28,6 +42,9 @@ public class DetalleReceta {
     }
     
     // Setters
+    public void setId(int id) {
+        this.id = id;
+    }
     public void setMedicamento(Medicamento medicamento) {
         this.medicamento = medicamento;
     }
