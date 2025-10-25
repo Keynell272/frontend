@@ -3,11 +3,9 @@ package view.paneles.generales;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
-
 import control.ControlDashboard;
 import model.Medicamento;
 import model.Receta;
-
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -18,17 +16,12 @@ public class DashboardPanel extends JPanel {
     private final List<Medicamento> medicamentos;
     private final ControlDashboard control;
 
-    // Filtros
     private JSpinner spAnioDesde, spAnioHasta;
     private JComboBox<String> cbMesDesde, cbMesHasta;
     private JComboBox<String> cbMedicamentos;
     private DefaultListModel<String> modeloSeleccion;
     private JList<String> listaSeleccion;
-
-    // Tabla
     private DefaultTableModel modeloTabla;
-
-    // Gráficos
     private PanelLineas graficoLineas;
     private PanelPastel graficoPastel;
 
@@ -45,7 +38,6 @@ public class DashboardPanel extends JPanel {
         setLayout(new BorderLayout(8,8));
         setBackground(new Color(235,235,238));
 
-        // ----- Izquierda: filtros + tabla -----
         JPanel izq = new JPanel();
         izq.setBackground(new Color(245,245,247));
         izq.setPreferredSize(new Dimension(230, 420));
@@ -70,7 +62,7 @@ public class DashboardPanel extends JPanel {
         filtros.add(spAnioDesde);
 
         cbMesDesde = new JComboBox<>(meses());
-        cbMesDesde.setSelectedIndex(7); // 8-Agosto
+        cbMesDesde.setSelectedIndex(7);
         cbMesDesde.setBounds(125, y, 80, 22);
         filtros.add(cbMesDesde);
 
@@ -84,7 +76,7 @@ public class DashboardPanel extends JPanel {
         filtros.add(spAnioHasta);
 
         cbMesHasta = new JComboBox<>(meses());
-        cbMesHasta.setSelectedIndex(9); // 10-Octubre
+        cbMesHasta.setSelectedIndex(9);
         cbMesHasta.setBounds(125, y, 80, 22);
         filtros.add(cbMesHasta);
 
@@ -113,7 +105,6 @@ public class DashboardPanel extends JPanel {
         spSel.setBounds(10, y + 80, 195, 70);
         filtros.add(spSel);
 
-        // Tabla resumen
         JPanel panelTabla = new JPanel(new BorderLayout());
         panelTabla.setBackground(new Color(245,245,247));
         panelTabla.setBorder(BorderFactory.createTitledBorder("Resumen"));
@@ -125,26 +116,28 @@ public class DashboardPanel extends JPanel {
         tabla.setRowHeight(20);
         panelTabla.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        // Botones inferiores
         JPanel panelBtns = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 4));
         panelBtns.setBackground(new Color(245,245,247));
         JButton btnAplicar = new JButton(icono("/imagenes/Doble check.png", 20, 20));
+        btnAplicar.setToolTipText("Aplicar filtros");
         JButton btnLimpiar = new JButton(icono("/imagenes/Limpiar logo.png", 20, 20));
+        btnLimpiar.setToolTipText("Limpiar");
+        JButton btnActualizar = new JButton("🔄");
+        btnActualizar.setToolTipText("Actualizar datos");
         panelBtns.add(btnAplicar);
         panelBtns.add(btnLimpiar);
+        panelBtns.add(btnActualizar);
 
         izq.add(filtros, BorderLayout.NORTH);
         izq.add(panelTabla, BorderLayout.CENTER);
         izq.add(panelBtns, BorderLayout.SOUTH);
 
-        // ----- Centro y derecha: gráficos -----
         graficoLineas = new PanelLineas();
         graficoLineas.setBorder(BorderFactory.createTitledBorder("Medicamentos"));
         graficoLineas.setPreferredSize(new Dimension(50, 150));
         graficoPastel = new PanelPastel();
         graficoPastel.setBorder(BorderFactory.createTitledBorder("Recetas"));
         graficoPastel.setPreferredSize(new Dimension(50, 150));
-        graficoLineas.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
 
         JPanel centro = new JPanel(new GridLayout(1,2,8,8));
         centro.add(graficoLineas);
@@ -153,26 +146,28 @@ public class DashboardPanel extends JPanel {
         add(izq, BorderLayout.WEST);
         add(centro, BorderLayout.CENTER);
 
-        // Eventos
         btnAgregar.addActionListener(e -> {
             String sel = (String) cbMedicamentos.getSelectedItem();
             if (sel != null && !modeloSeleccion.contains(sel)) modeloSeleccion.addElement(sel);
         });
+        
         btnQuitar.addActionListener(e -> {
             List<String> seleccion = listaSeleccion.getSelectedValuesList();
             for (String s : seleccion) modeloSeleccion.removeElement(s);
         });
+        
         btnLimpiar.addActionListener(e -> {
             modeloSeleccion.clear();
             modeloTabla.setRowCount(0);
-            graficoLineas.setDatos(getAnioDesde(), mesesRango(), new LinkedHashMap<>());
-            graficoPastel.setDatos(control.recetasPorEstado());
+            actualizarDatosYGraficos();
         });
+        
         btnAplicar.addActionListener(e -> actualizarGraficos());
+        
+        btnActualizar.addActionListener(e -> actualizarDatosYGraficos());
     }
 
     private void cargarInicial() {
-        // Por defecto intenta Acetaminofen/Amoxicilina si existen
         Set<String> defaults = new LinkedHashSet<>(Arrays.asList("Acetaminofen", "Amoxicilina", "Acetaminofén"));
         for (int i = 0; i < cbMedicamentos.getItemCount() && modeloSeleccion.size() < 2; i++) {
             String nombre = cbMedicamentos.getItemAt(i);
@@ -180,6 +175,18 @@ public class DashboardPanel extends JPanel {
                 modeloSeleccion.addElement(nombre);
         }
         actualizarGraficos();
+    }
+
+    private void actualizarDatosYGraficos() {
+        control.actualizarDatos();
+        
+        cbMedicamentos.removeAllItems();
+        for (String nombre : nombresMedicamentos()) {
+            cbMedicamentos.addItem(nombre);
+        }
+        
+        actualizarGraficos();
+        JOptionPane.showMessageDialog(this, "✅ Datos actualizados");
     }
 
     private void actualizarGraficos() {
@@ -197,7 +204,6 @@ public class DashboardPanel extends JPanel {
         }
         graficoLineas.setDatos(anio, meses, series);
 
-        // Tabla
         modeloTabla.setRowCount(0);
         for (Map.Entry<String, Map<Integer, Integer>> e : series.entrySet()) {
             String med = e.getKey();
@@ -208,7 +214,6 @@ public class DashboardPanel extends JPanel {
             modeloTabla.addRow(fila);
         }
 
-        // Pastel
         graficoPastel.setDatos(control.recetasPorEstado());
         graficoLineas.revalidate();
         graficoLineas.repaint();
@@ -216,7 +221,6 @@ public class DashboardPanel extends JPanel {
         graficoPastel.repaint();
     }
 
-    // -------- helpers --------
     private int getAnioDesde() { return ((Number) spAnioDesde.getValue()).intValue(); }
     private int getMesDesde() { return cbMesDesde.getSelectedIndex() + 1; }
     private int getAnioHasta() { return ((Number) spAnioHasta.getValue()).intValue(); }
@@ -226,7 +230,7 @@ public class DashboardPanel extends JPanel {
         int ai = getAnioDesde(), af = getAnioHasta();
         int mi = getMesDesde(), mf = getMesHasta();
         List<Integer> meses = new ArrayList<>();
-        if (ai != af) af = ai; // la maqueta usa mismo año
+        if (ai != af) af = ai;
         for (int m = mi; m <= mf; m++) meses.add(m);
         return meses;
     }
@@ -235,11 +239,13 @@ public class DashboardPanel extends JPanel {
         return new String[]{"1-Enero","2-Febrero","3-Marzo","4-Abril","5-Mayo","6-Junio",
                 "7-Julio","8-Agosto","9-Septiembre","10-Octubre","11-Noviembre","12-Diciembre"};
     }
+    
     private String[] nombresMedicamentos() {
         List<String> n = new ArrayList<>();
-        for (Medicamento m : medicamentos) n.add(m.getNombre());
+        for (Medicamento m : control.getMedicamentos()) n.add(m.getNombre());
         return n.toArray(new String[0]);
     }
+    
     private ImageIcon icono(String ruta, int w, int h) {
         java.net.URL url = getClass().getResource(ruta);
         if (url == null) return new ImageIcon(new java.awt.image.BufferedImage(

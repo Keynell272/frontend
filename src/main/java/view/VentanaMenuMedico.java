@@ -42,7 +42,6 @@ public class VentanaMenuMedico extends JFrame {
     private ControlReceta controlReceta;
     private ControlLogin controlLogin;
     private List<Receta> recetas;
-
     private JTextField txtFechaRetiro;
     private JButton btnBuscarPaciente, btnAgregarMedicamento;
     private JTable tablaMedicamentos;
@@ -50,8 +49,6 @@ public class VentanaMenuMedico extends JFrame {
     private JLabel lblPaciente;
     private Paciente pacienteSeleccionado;
     private List<Medicamento> cargarMedicamentos;
-    
-    // Panel de usuarios activos
     private PanelUsuariosActivos panelUsuariosActivos;
 
     public VentanaMenuMedico(Medico medicoLogueado, ControlReceta controlReceta) {
@@ -63,18 +60,15 @@ public class VentanaMenuMedico extends JFrame {
         init();
     }
 
-    // ------------------ INIT ------------------
     private void init() {
         setTitle("Sistema de Recetas - Dr(a). " + medicoLogueado.getNombre() + " (" + medicoLogueado.getRol() + ")");
-        setSize(1050, 550); // Incrementado el ancho para el panel de usuarios
+        setSize(1050, 550);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(cargarIcono("/imagenes/medico logo.png", 32, 32).getImage());
 
-        // Panel principal con BorderLayout
         JPanel panelPrincipal = new JPanel(new BorderLayout());
         
-        // TabbedPane en el centro
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Prescribir", cargarIcono("/imagenes/medicamentos logos.png", 20, 20), crearPanelPrescribir());
         tabbedPane.addTab("Dashboard", cargarIcono("/imagenes/dashbord logo.png", 20, 20), new DashboardPanel());
@@ -83,13 +77,11 @@ public class VentanaMenuMedico extends JFrame {
         
         panelPrincipal.add(tabbedPane, BorderLayout.CENTER);
         
-        // Panel de usuarios activos al lado derecho
         panelUsuariosActivos = new PanelUsuariosActivos(medicoLogueado);
         panelPrincipal.add(panelUsuariosActivos, BorderLayout.EAST);
         
         add(panelPrincipal);
         
-        // Listener para cerrar sesión al cerrar ventana
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -98,7 +90,6 @@ public class VentanaMenuMedico extends JFrame {
         });
     }
 
-    // ------------------ UTILS ------------------
     private ImageIcon cargarIcono(String ruta, int ancho, int alto) {
         java.net.URL location = getClass().getResource(ruta);
         if (location == null) {
@@ -110,11 +101,9 @@ public class VentanaMenuMedico extends JFrame {
         return new ImageIcon(imagen);
     }
 
-    // ------------------ PANEL PRESCRIBIR ------------------
     private JPanel crearPanelPrescribir() {
         JPanel panelPrescribir = new JPanel(null);
 
-        // Control
         JLabel lblControl = new JLabel("Control");
         lblControl.setFont(new Font("Arial", Font.BOLD, 12));
         lblControl.setBounds(10, 5, 100, 20);
@@ -132,13 +121,12 @@ public class VentanaMenuMedico extends JFrame {
 
         btnCerrarSesion = new JButton("Cerrar Sesión");
         btnCerrarSesion.setBounds(420, 25, 130, 30);
-        btnCerrarSesion.setBackground(new Color(231, 76, 60));
-        btnCerrarSesion.setForeground(Color.WHITE);
+        btnCerrarSesion.setBackground(new Color(192, 57, 43));
+        btnCerrarSesion.setForeground(Color.black);
         btnCerrarSesion.setFocusPainted(false);
         btnCerrarSesion.addActionListener(e -> cerrarSesion());
         panelPrescribir.add(btnCerrarSesion);
 
-        // Receta
         JLabel lblReceta = new JLabel("Receta Médica");
         lblReceta.setFont(new Font("Arial", Font.BOLD, 12));
         lblReceta.setBounds(10, 70, 120, 20);
@@ -165,7 +153,6 @@ public class VentanaMenuMedico extends JFrame {
         lblPaciente.setBounds(20, 130, 400, 25);
         panelPrescribir.add(lblPaciente);
 
-        // Tabla
         String[] columnas = {"Medicamento", "Presentación", "Cantidad", "Indicaciones", "Duración (días)"};
         DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
             @Override
@@ -178,7 +165,6 @@ public class VentanaMenuMedico extends JFrame {
         scroll.setBounds(20, 160, 530, 180);
         panelPrescribir.add(scroll);
 
-        // Ajustar Prescripción
         JLabel lblAjustar = new JLabel("Ajustar Prescripción");
         lblAjustar.setFont(new Font("Arial", Font.BOLD, 12));
         lblAjustar.setBounds(10, 350, 150, 20);
@@ -186,9 +172,6 @@ public class VentanaMenuMedico extends JFrame {
 
         btnGuardar = new JButton("Guardar", cargarIcono("/imagenes/Guardar logo.png", 20, 20));
         btnGuardar.setBounds(20, 375, 130, 35);
-        btnGuardar.setBackground(new Color(46, 204, 113));
-        btnGuardar.setForeground(Color.BLACK);
-        btnGuardar.setFocusPainted(false);
         btnGuardar.addActionListener(e -> guardarReceta());
         panelPrescribir.add(btnGuardar);
 
@@ -210,7 +193,6 @@ public class VentanaMenuMedico extends JFrame {
         return panelPrescribir;
     }
 
-    // ------------------ GUARDAR RECETA ------------------
     private void guardarReceta() {
         try {
             controlReceta.guardarReceta(
@@ -231,7 +213,6 @@ public class VentanaMenuMedico extends JFrame {
         }
     }
 
-    // ------------------ LIMPIAR FORMULARIO ------------------
     private void limpiarFormulario() {
         DefaultTableModel modelo = (DefaultTableModel) tablaMedicamentos.getModel();
         modelo.setRowCount(0);
@@ -240,7 +221,6 @@ public class VentanaMenuMedico extends JFrame {
         pacienteSeleccionado = null;
     }
 
-    // ------------------ DESCARTAR MEDICAMENTO ------------------
     private void descartarMedicamento() {
         int[] filas = tablaMedicamentos.getSelectedRows();
         if (filas.length == 0) {
@@ -262,7 +242,6 @@ public class VentanaMenuMedico extends JFrame {
             JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // ------------------ CERRAR SESIÓN ------------------
     private void cerrarSesion() {
         int opcion = JOptionPane.showConfirmDialog(this,
             "¿Está seguro que desea cerrar sesión?",
@@ -277,12 +256,10 @@ public class VentanaMenuMedico extends JFrame {
         }
     }
 
-    // ------------------ PANEL ACERCA DE ------------------
     private JPanel crearPanelAcercaDe() {
         return new PanelAcercaDe();
     }
 
-    // ------------------ PACIENTES ------------------
     private void mostrarVentanaBuscarPaciente() {
         List<Paciente> pacientes = controlReceta.getPacientes();
 
@@ -313,8 +290,6 @@ public class VentanaMenuMedico extends JFrame {
 
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnSeleccionar = new JButton("Seleccionar");
-        btnSeleccionar.setBackground(new Color(46, 204, 113));
-        btnSeleccionar.setForeground(Color.WHITE);
         btnSeleccionar.setFocusPainted(false);
         
         JButton btnCancelar = new JButton("Cancelar");
@@ -379,7 +354,6 @@ public class VentanaMenuMedico extends JFrame {
         dialog.setVisible(true);
     }
 
-    // ------------------ MEDICAMENTOS ------------------
     private void mostrarVentanaAgregarMedicamento() {
         List<Medicamento> medicamentos = cargarMedicamentos;
 
@@ -410,8 +384,6 @@ public class VentanaMenuMedico extends JFrame {
 
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnAgregar = new JButton("Agregar");
-        btnAgregar.setBackground(new Color(46, 204, 113));
-        btnAgregar.setForeground(Color.WHITE);
         btnAgregar.setFocusPainted(false);
         
         JButton btnCancelar = new JButton("Cancelar");
@@ -471,12 +443,10 @@ public class VentanaMenuMedico extends JFrame {
         dialog.setVisible(true);
     }
 
-    // ------------------ HISTORICO ------------------
     private JPanel crearPanelHistorico() {
         return new PanelHistorico(controlReceta);
     }
     
-    // ------------------ DETALLES ------------------
     private void mostrarVentanaDetalles() {
         if (tablaMedicamentos.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this,
@@ -531,8 +501,6 @@ public class VentanaMenuMedico extends JFrame {
 
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton btnGuardarCambios = new JButton("Guardar Cambios");
-        btnGuardarCambios.setBackground(new Color(46, 204, 113));
-        btnGuardarCambios.setForeground(Color.WHITE);
         btnGuardarCambios.setFocusPainted(false);
         
         JButton btnCerrar = new JButton("Cerrar");

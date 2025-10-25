@@ -2,11 +2,9 @@ package view.paneles.admin;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
 import control.ControlAdmin;
 import model.Paciente;
 import view.paneles.generales.DatePickerConNavegacion;
-
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -71,7 +69,6 @@ public class PanelPacientes extends JPanel {
         txtTelefonoPac.setBounds(100, 130, 150, 25);
         add(txtTelefonoPac);
 
-        // Botones
         JButton btnGuardar = new JButton("Guardar");
         btnGuardar.setBounds(320, 40, 100, 30);
         btnGuardar.setIcon(cargarIcono("/imagenes/Guardar logo.png", 20, 20));
@@ -87,7 +84,6 @@ public class PanelPacientes extends JPanel {
         btnBorrar.setIcon(cargarIcono("/imagenes/X logo.png", 20, 20));
         add(btnBorrar);
 
-        // Búsqueda
         JLabel lblBusqueda = new JLabel("Búsqueda");
         lblBusqueda.setFont(new Font("Arial", Font.BOLD, 12));
         lblBusqueda.setBounds(10, 170, 100, 20);
@@ -115,7 +111,6 @@ public class PanelPacientes extends JPanel {
         btnReporte.setIcon(cargarIcono("/imagenes/Reporte logo.png", 20, 20));
         add(btnReporte);
 
-        // Tabla
         JLabel lblListado = new JLabel("Listado");
         lblListado.setFont(new Font("Arial", Font.BOLD, 12));
         lblListado.setBounds(10, 250, 100, 20);
@@ -128,25 +123,29 @@ public class PanelPacientes extends JPanel {
         scrollPane.setBounds(10, 280, 650, 280);
         add(scrollPane);
 
-        // === Estilo de bordes ===
         txtIdPac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         txtNombrePac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         txtFechaNac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         txtTelefonoPac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
         txtBusquedaNombrePac.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
 
-        // === Cargar pacientes iniciales ===
-        for (Paciente p : pacientes) {
-            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
-        }
+        cargarTabla();
 
-        // === Listeners ===
         btnGuardar.addActionListener(e -> guardarPaciente());
         btnLimpiar.addActionListener(e -> limpiarCampos());
         btnBorrar.addActionListener(e -> borrarPaciente());
         btnBuscar.addActionListener(e -> buscarPaciente());
-        btnRestaurar.addActionListener(e -> restaurarTabla());
+        btnRestaurar.addActionListener(e -> cargarTabla());
         btnReporte.addActionListener(e -> mostrarReporte());
+    }
+
+    private void cargarTabla() {
+        modeloTablaPac.setRowCount(0);
+        controlAdmin.refrescarDatos();
+        pacientes = controlAdmin.getPacientes();
+        for (Paciente p : pacientes) {
+            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
+        }
     }
 
     private void guardarPaciente() {
@@ -176,13 +175,15 @@ public class PanelPacientes extends JPanel {
             return;
         }
 
-        Paciente p = new Paciente(id, nombre, fecha, tel);
-        pacientes.add(p);
-        modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
-        controlAdmin.guardarPacientes();
-
-        JOptionPane.showMessageDialog(this, "✅ Paciente guardado con éxito");
-        limpiarCampos();
+        try {
+            Paciente p = new Paciente(id, nombre, fecha, tel);
+            controlAdmin.agregarPaciente(p);
+            JOptionPane.showMessageDialog(this, "✅ Paciente guardado con éxito");
+            cargarTabla();
+            limpiarCampos();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "❌ Error: " + ex.getMessage());
+        }
     }
 
     private void borrarPaciente() {
@@ -191,11 +192,19 @@ public class PanelPacientes extends JPanel {
             JOptionPane.showMessageDialog(this, "Seleccione un paciente");
             return;
         }
+        
         String id = (String) modeloTablaPac.getValueAt(fila, 0);
-        pacientes.removeIf(p -> p.getId().equals(id));
-        modeloTablaPac.removeRow(fila);
-        controlAdmin.guardarPacientes();
-        JOptionPane.showMessageDialog(this, "✅ Paciente eliminado");
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "¿Está seguro de eliminar el paciente " + id + "?",
+            "Confirmar eliminación",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            controlAdmin.eliminarPaciente(id);
+            controlAdmin.guardarPacientes();
+            JOptionPane.showMessageDialog(this, "✅ Paciente eliminado");
+            cargarTabla();
+        }
     }
 
     private void buscarPaciente() {
@@ -205,13 +214,6 @@ public class PanelPacientes extends JPanel {
             if (p.getNombre().toLowerCase().contains(buscar)) {
                 modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
             }
-        }
-    }
-
-    private void restaurarTabla() {
-        modeloTablaPac.setRowCount(0);
-        for (Paciente p : pacientes) {
-            modeloTablaPac.addRow(new Object[]{p.getId(), p.getNombre(), formatearFecha(p.getFechaNacimiento()), p.getTelefono()});
         }
     }
 
