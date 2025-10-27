@@ -163,10 +163,13 @@ public class PanelMedicos extends JPanel {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            controlAdmin.eliminarMedico(id);
-            controlAdmin.guardarMedicos();
-            JOptionPane.showMessageDialog(this, "✅ Médico eliminado correctamente");
-            cargarTabla();
+            try {
+                controlAdmin.eliminarMedico(id);
+                JOptionPane.showMessageDialog(this, "✅ Médico eliminado correctamente");
+                cargarTabla();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "❌ Error: " + ex.getMessage());
+            }
         }
     }
 

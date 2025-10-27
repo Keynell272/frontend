@@ -3,6 +3,7 @@ package view;
 import javax.swing.*;
 
 import control.ControlAdmin;
+import control.ControlLogin;
 import control.ControlReceta;
 import model.Farmaceuta;
 import model.Medicamento;
@@ -23,15 +24,13 @@ import java.awt.*;
 import java.net.URL;
 import java.util.List;
 
-
-
 public class VentanaMenuAdmin extends JFrame {
     private Usuario usuarioLogueado;
-    // Panel de usuarios activos
     private PanelUsuariosActivos panelUsuariosActivos;
     
     private ControlAdmin controlAdmin;
     private ControlReceta controlReceta;
+    private ControlLogin controlLogin;
 
     private List<Medico> medicos;
     private List<Farmaceuta> farmaceutas;
@@ -44,6 +43,7 @@ public class VentanaMenuAdmin extends JFrame {
 
         this.controlAdmin = new ControlAdmin();
         this.controlReceta = new ControlReceta();
+        this.controlLogin = new ControlLogin();
 
         this.medicos = controlAdmin.getMedicos();
         this.farmaceutas = controlAdmin.getFarmaceutas();
@@ -61,28 +61,23 @@ public class VentanaMenuAdmin extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         setIconImage(new ImageIcon(getClass().getResource("/imagenes/Recetas logo.png")).getImage());
-         // Panel principal con BorderLayout
+        
+        // Panel principal con BorderLayout
         JPanel panelPrincipal = new JPanel(new BorderLayout());
+
+        // Panel superior con logout
+        JPanel panelSuperior = crearPanelSuperior();
+        panelPrincipal.add(panelSuperior, BorderLayout.NORTH);
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Panel médicos con toda la interfaz
+        // Crear paneles
         JPanel panelMedicos = crearPanelMedicos();
-
-        // Otros paneles simples
         JPanel panelFarmaceutas = crearPanelFarmaceutas();
-        panelFarmaceutas.add(new JLabel("Farmaceutas"));
-
         JPanel panelPacientes = crearPanelPacientes();
-        panelPacientes.add(new JLabel("Pacientes"));
-
         JPanel panelMedicamentos = crearPanelMedicamentos();
-        panelMedicamentos.add(new JLabel("Medicamentos"));
-
         JPanel panelDashboard = crearPanelDashboard();
-
         JPanel panelHistorico = crearPanelHistorico();
-
         JPanel panelAcerca = crearPanelAcercaDe();
 
         // Tabs
@@ -94,12 +89,61 @@ public class VentanaMenuAdmin extends JFrame {
         tabbedPane.addTab("Histórico", cargarIcono("/imagenes/historico logo.png", 24, 24), panelHistorico);
         tabbedPane.addTab("Acerca de...", cargarIcono("/imagenes/Acerca de logo.png", 24, 24), panelAcerca);
 
-        panelPrincipal.add(tabbedPane, BorderLayout.CENTER);
-    
+        // Panel central con tabs y usuarios activos
+        JPanel panelCentral = new JPanel(new BorderLayout());
+        panelCentral.add(tabbedPane, BorderLayout.CENTER);
+        
         // Panel de usuarios activos al lado derecho
         panelUsuariosActivos = new PanelUsuariosActivos(usuarioLogueado);
-        panelPrincipal.add(panelUsuariosActivos, BorderLayout.EAST);    
+        panelCentral.add(panelUsuariosActivos, BorderLayout.EAST);
+        
+        panelPrincipal.add(panelCentral, BorderLayout.CENTER);
         add(panelPrincipal);
+        
+        // Listener para cerrar sesión al cerrar la ventana
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                cerrarSesion();
+            }
+        });
+    }
+
+    // ===================== PANEL SUPERIOR CON LOGOUT =====================
+    private JPanel crearPanelSuperior() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        panel.setBackground(new Color(245, 245, 245));
+        panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200)));
+
+        JLabel lblUsuario = new JLabel("Usuario: " + usuarioLogueado.getNombre());
+        lblUsuario.setFont(new Font("Arial", Font.BOLD, 12));
+        panel.add(lblUsuario);
+
+        JButton btnLogout = new JButton("Cerrar Sesión", cargarIcono("/imagenes/X logo.png", 16, 16));
+        btnLogout.setFont(new Font("Arial", Font.PLAIN, 11));
+        btnLogout.setBackground(new Color(220, 53, 69));
+        btnLogout.setForeground(Color.WHITE);
+        btnLogout.setFocusPainted(false);
+        btnLogout.setBorderPainted(false);
+        btnLogout.addActionListener(e -> cerrarSesion());
+        
+        panel.add(btnLogout);
+
+        return panel;
+    }
+
+    // ===================== CERRAR SESIÓN =====================
+    private void cerrarSesion() {
+        int opcion = JOptionPane.showConfirmDialog(this,
+            "¿Está seguro que desea cerrar sesión?",
+            "Confirmar cierre de sesión",
+            JOptionPane.YES_NO_OPTION);
+        
+        if (opcion == JOptionPane.YES_OPTION) {
+            controlLogin.logout(usuarioLogueado.getId());
+            dispose();
+            new VentanaLogin().setVisible(true);
+        }
     }
 
     // ===================== PANELS =====================
@@ -142,5 +186,4 @@ public class VentanaMenuAdmin extends JFrame {
         Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
-    
 }

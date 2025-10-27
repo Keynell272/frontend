@@ -64,7 +64,17 @@ public class ControlAdmin {
     }
     
     public void eliminarMedico(String id) {
-        medicos.removeIf(m -> m.getId().equals(id));
+        try {
+            boolean exito = proxy.eliminarUsuario(id);
+            if (exito) {
+                medicos.removeIf(m -> m.getId().equals(id));
+                refrescarDatos();
+            } else {
+                throw new Exception("No se pudo eliminar el médico en el servidor");
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Error al eliminar: " + ex.getMessage());
+        }
     }
     
     public Medico buscarMedico(String id) {
@@ -92,7 +102,17 @@ public class ControlAdmin {
     }
     
     public void eliminarFarmaceuta(String id) {
-        farmaceutas.removeIf(f -> f.getId().equals(id));
+        try {
+            boolean exito = proxy.eliminarUsuario(id);
+            if (exito) {
+                farmaceutas.removeIf(f -> f.getId().equals(id));
+                refrescarDatos();
+            } else {
+                throw new Exception("No se pudo eliminar el farmacéuta en el servidor");
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Error al eliminar: " + ex.getMessage());
+        }
     }
     
     public void guardarFarmaceutas() {
@@ -113,7 +133,17 @@ public class ControlAdmin {
     }
     
     public void eliminarPaciente(String id) {
-        pacientes.removeIf(p -> p.getId().equals(id));
+        try {
+            boolean exito = proxy.eliminarPaciente(id);
+            if (exito) {
+                pacientes.removeIf(p -> p.getId().equals(id));
+                refrescarDatos();
+            } else {
+                throw new Exception("No se pudo eliminar el paciente en el servidor");
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Error al eliminar: " + ex.getMessage());
+        }
     }
     
     public void guardarPacientes() {
@@ -133,12 +163,17 @@ public class ControlAdmin {
         }
     }
     
-    public void eliminarMedicamento(String codigo) throws Exception {
-        boolean exito = proxy.eliminarMedicamento(codigo);
-        if (exito) {
-            medicamentos.removeIf(m -> m.getCodigo().equals(codigo));
-        } else {
-            throw new Exception("No se pudo eliminar el medicamento");
+    public void eliminarMedicamento(String codigo) {
+        try {
+            boolean exito = proxy.eliminarMedicamento(codigo);
+            if (exito) {
+                medicamentos.removeIf(m -> m.getCodigo().equals(codigo));
+                refrescarDatos();
+            } else {
+                throw new Exception("No se pudo eliminar el medicamento en el servidor");
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Error al eliminar: " + ex.getMessage());
         }
     }
     

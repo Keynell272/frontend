@@ -200,10 +200,13 @@ public class PanelPacientes extends JPanel {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            controlAdmin.eliminarPaciente(id);
-            controlAdmin.guardarPacientes();
-            JOptionPane.showMessageDialog(this, "✅ Paciente eliminado");
-            cargarTabla();
+            try {
+                controlAdmin.eliminarPaciente(id);
+                JOptionPane.showMessageDialog(this, "✅ Paciente eliminado");
+                cargarTabla();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "❌ Error: " + ex.getMessage());
+            }
         }
     }
 

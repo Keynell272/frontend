@@ -78,10 +78,13 @@ public class VentanaMenuFarmaceuta extends JFrame {
         JButton btnLista = new JButton("Marcar como Lista");
         JButton btnEntregar = new JButton("Entregar");
         JButton btnDetalles = new JButton("Detalles");
-        JButton btnCerrarSesion = new JButton("Cerrar Sesión");
-        btnCerrarSesion.setBackground(new Color(231, 76, 60));
-        btnCerrarSesion.setForeground(Color.black);
+        JButton btnCerrarSesion = new JButton("Cerrar Sesión", cargarIcono("/imagenes/X logo.png", 16, 16));
+        btnCerrarSesion.setFont(new Font("Arial", Font.PLAIN, 11));
+        btnCerrarSesion.setBackground(new Color(220, 53, 69));
+        btnCerrarSesion.setForeground(Color.WHITE);
         btnCerrarSesion.setFocusPainted(false);
+        btnCerrarSesion.setBorderPainted(false);
+        btnCerrarSesion.addActionListener(e -> cerrarSesion());
 
         panelBotones.add(btnProceso);
         panelBotones.add(btnLista);

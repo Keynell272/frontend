@@ -41,6 +41,8 @@ public interface IService {
     
     Paciente buscarPaciente(String id) throws Exception;
     
+    boolean eliminarPaciente(String id) throws Exception;
+    
     // ==================== PRESCRIPCIÓN ====================
     
     boolean crearReceta(Receta receta) throws Exception;
@@ -67,6 +69,8 @@ public interface IService {
 
     List<UsuarioActivo> listarUsuariosActivos() throws Exception;
     
+    boolean eliminarUsuario(String id) throws Exception;
+
     // ==================== MENSAJERÍA ====================
     
     boolean enviarMensaje(Mensaje mensaje) throws Exception;

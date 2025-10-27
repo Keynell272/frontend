@@ -423,7 +423,7 @@ public class ServiceProxy implements IService {
         JSONObject response = enviarPeticion(request.toString());
         return response.getString("status").equals(Protocol.STATUS_SUCCESS);
     }
-    
+
     @Override
     public Medicamento buscarMedicamento(String codigo) throws Exception {
         JSONObject request = new JSONObject();
@@ -507,6 +507,20 @@ public class ServiceProxy implements IService {
         } else {
             throw new Exception(response.getString("message"));
         }
+    }
+
+    @Override
+    public boolean eliminarPaciente(String id) throws Exception {
+        JSONObject request = new JSONObject();
+        request.put("type", Protocol.TYPE_REQUEST);
+        request.put("action", Protocol.ACTION_ELIMINAR_PACIENTE);
+        
+        JSONObject data = new JSONObject();
+        data.put(Protocol.FIELD_PACIENTE_ID, id);
+        request.put("data", data);
+        
+        JSONObject response = enviarPeticion(request.toString());
+        return response.getString("status").equals(Protocol.STATUS_SUCCESS);
     }
     
     // ==================== PRESCRIPCIÓN ====================
@@ -748,6 +762,20 @@ public class ServiceProxy implements IService {
         }
     }
     
+    @Override
+    public boolean eliminarUsuario(String id) throws Exception {
+        JSONObject request = new JSONObject();
+        request.put("type", Protocol.TYPE_REQUEST);
+        request.put("action", Protocol.ACTION_ELIMINAR_USUARIO);
+        
+        JSONObject data = new JSONObject();
+        data.put(Protocol.FIELD_USUARIO_ID, id);
+        request.put("data", data);
+        
+        JSONObject response = enviarPeticion(request.toString());
+        return response.getString("status").equals(Protocol.STATUS_SUCCESS);
+    }
+
     // ==================== MENSAJERÍA ====================
     
     @Override

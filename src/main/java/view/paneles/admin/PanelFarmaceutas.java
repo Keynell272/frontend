@@ -161,10 +161,13 @@ public class PanelFarmaceutas extends JPanel {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            controlAdmin.eliminarFarmaceuta(id);
-            controlAdmin.guardarFarmaceutas();
-            JOptionPane.showMessageDialog(this, "✅ Farmacéuta eliminado");
-            cargarTabla();
+            try {
+                controlAdmin.eliminarFarmaceuta(id);
+                JOptionPane.showMessageDialog(this, "✅ Farmacéuta eliminado");
+                cargarTabla();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "❌ Error: " + ex.getMessage());
+            }
         }
     }
 

@@ -119,11 +119,13 @@ public class VentanaMenuMedico extends JFrame {
         btnAgregarMedicamento.addActionListener(e -> mostrarVentanaAgregarMedicamento());
         panelPrescribir.add(btnAgregarMedicamento);
 
-        btnCerrarSesion = new JButton("Cerrar Sesión");
+        JButton btnCerrarSesion = new JButton("Cerrar Sesión", cargarIcono("/imagenes/X logo.png", 16, 16));
         btnCerrarSesion.setBounds(420, 25, 130, 30);
-        btnCerrarSesion.setBackground(new Color(192, 57, 43));
-        btnCerrarSesion.setForeground(Color.black);
+        btnCerrarSesion.setFont(new Font("Arial", Font.PLAIN, 11));
+        btnCerrarSesion.setBackground(new Color(220, 53, 69));
+        btnCerrarSesion.setForeground(Color.WHITE);
         btnCerrarSesion.setFocusPainted(false);
+        btnCerrarSesion.setBorderPainted(false);
         btnCerrarSesion.addActionListener(e -> cerrarSesion());
         panelPrescribir.add(btnCerrarSesion);
 

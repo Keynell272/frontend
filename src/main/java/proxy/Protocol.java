@@ -43,7 +43,8 @@ public class Protocol {
     public static final String ACTION_AGREGAR_PACIENTE = "AGREGAR_PACIENTE";
     public static final String ACTION_ACTUALIZAR_PACIENTE = "ACTUALIZAR_PACIENTE";
     public static final String ACTION_BUSCAR_PACIENTE = "BUSCAR_PACIENTE";
-    
+    public static final String ACTION_ELIMINAR_PACIENTE = "eliminarPaciente";
+
     // ==================== ACCIONES - DASHBOARD ====================
     public static final String ACTION_OBTENER_ESTADISTICAS = "OBTENER_ESTADISTICAS";
     public static final String ACTION_OBTENER_HISTORICO = "OBTENER_HISTORICO";
@@ -52,6 +53,7 @@ public class Protocol {
     public static final String ACTION_LISTAR_USUARIOS = "LISTAR_USUARIOS";
     public static final String ACTION_AGREGAR_USUARIO = "AGREGAR_USUARIO";
     public static final String ACTION_LISTAR_USUARIOS_ACTIVOS = "LISTAR_USUARIOS_ACTIVOS";
+    public static final String ACTION_ELIMINAR_USUARIO = "eliminarUsuario";
     
     // ==================== ACCIONES - MENSAJERÍA ====================
     public static final String ACTION_ENVIAR_MENSAJE = "ENVIAR_MENSAJE";
