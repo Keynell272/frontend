@@ -11,9 +11,6 @@ import view.VentanaLogin;
 /**
  * Clase principal del Sistema de Gestión de Recetas Médicas
  * Proyecto #2 - Programación Orientada a Objetos
- * 
- * @author Tu Nombre
- * @version 2.0
  */
 public class Main {
     
