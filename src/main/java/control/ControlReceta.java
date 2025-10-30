@@ -237,4 +237,26 @@ public class ControlReceta {
     public void guardarCambios(String ruta) {
         refrescarDatos();
     }
+
+    /**
+     * Obtiene las recetas que aún están pendientes (no entregadas)
+     */
+    public List<Receta> getRecetasPendientes() {
+        try {
+            List<Receta> todas = proxy.listarRecetas();
+            List<Receta> pendientes = new ArrayList<>();
+            
+            for (Receta r : todas) {
+                // Excluir recetas entregadas
+                if (!r.getEstado().equals("entregada")) {
+                    pendientes.add(r);
+                }
+            }
+            
+            return pendientes;
+        } catch (Exception e) {
+            System.err.println("Error al obtener recetas pendientes: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
 }

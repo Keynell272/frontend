@@ -257,7 +257,8 @@ public class VentanaMenuFarmaceuta extends JFrame {
     private void cargarRecetasEnTabla() {
         modeloTabla.setRowCount(0);
         controlReceta.refrescarDatos();
-        for (Receta r : controlReceta.getRecetas()) {
+        // Solo mostrar recetas pendientes (no entregadas)
+        for (Receta r : controlReceta.getRecetasPendientes()) {
             modeloTabla.addRow(new Object[]{
                     r.getId(),
                     r.getPaciente().getNombre(),
